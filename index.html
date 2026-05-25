@@ -6,13 +6,13 @@
     <title>おやすみのじゅんびアプリ</title>
     <style>
         :root {
-            /* 背景を黒から、少し明るい紫・青ベースのグラデーションへ変更 */
-            --bg-gradient: linear-gradient(135deg, #2c1a4d 0%, #1a2a6c 100%);
-            --card-bg: rgba(255, 255, 255, 0.1);
+            --bg-gradient: linear-gradient(135deg, #1a1c4b 0%, #0d1b2a 100%);
+            --card-bg: rgba(255, 255, 255, 0.08);
             --text-color: #ffffff;
             --accent-color: #f1c40f;
             --success-color: #2ecc71;
             --danger-color: #e74c3c;
+            --timer-blue: rgba(52, 152, 219, 0.6); /* 残り時間を表す青塗り */
         }
 
         body {
@@ -26,6 +26,8 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         header {
@@ -44,33 +46,61 @@
             text-shadow: 0 0 10px rgba(241, 196, 15, 0.3);
         }
 
-        /* アナログ時計とタイマーのエリア */
+        /* 時計 & タイマーエリア */
         .clock-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             margin-bottom: 25px;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 15px;
-            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 25px;
             width: 100%;
-            max-width: 470px;
+            max-width: 460px;
+            box-sizing: border-box;
         }
 
+        /* 数字と青塗り付きのアナログ時計 */
         .analog-clock {
-            width: 120px;
-            height: 120px;
-            border: 4px solid var(--accent-color);
+            width: 180px;
+            height: 180px;
+            border: 6px solid #2c3e50;
             border-radius: 50%;
             position: relative;
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 0 15px rgba(241, 196, 15, 0.2);
+            background: #ffffff;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+        }
+
+        /* 残り時間を表示する青塗りレイヤー */
+        .time-pie {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            transform: rotate(-90deg); /* 真上(12時)を0度にする */
+            background: transparent;
         }
 
         .clock-face {
-            position: relative;
+            position: absolute;
             width: 100%;
             height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        /* 時計の文字盤の数字 */
+        .clock-number {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1.1rem;
         }
 
         .hand {
@@ -80,23 +110,24 @@
             transform-origin: bottom;
             background: #1a1a2e;
             border-radius: 4px;
+            z-index: 10;
         }
 
-        .hour-hand { width: 4px; height: 30px; margin-left: -2px; }
-        .minute-hand { width: 3px; height: 45px; margin-left: -1.5px; background: #34495e; }
-        .second-hand { width: 1.5px; height: 50px; margin-left: -0.75px; background: var(--danger-color); }
-        .center-dot { position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; background: var(--accent-color); border-radius: 50%; transform: translate(-50%, -50%); }
+        .hour-hand { width: 5px; height: 45px; margin-left: -2.5px; }
+        .minute-hand { width: 3.5px; height: 65px; margin-left: -1.75px; background: #34495e; }
+        .second-hand { width: 1.5px; height: 75px; margin-left: -0.75px; background: var(--danger-color); }
+        .center-dot { position: absolute; top: 50%; left: 50%; width: 10px; height: 10px; background: #2c3e50; border-radius: 50%; transform: translate(-50%, -50%); z-index: 11; }
 
         .timer-display {
-            margin-top: 10px;
-            font-size: 1.3rem;
+            margin-top: 15px;
+            font-size: 1.4rem;
             font-weight: bold;
-            color: #ff7675;
+            color: #54a0ff;
             min-height: 1.5rem;
             text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
-        /* ボタン群 */
+        /* ボタン */
         .btn {
             padding: 8px 16px;
             border-radius: 20px;
@@ -109,25 +140,43 @@
         .btn:active { transform: scale(0.95); }
         .edit-btn { background-color: #3498db; color: white; }
         .edit-btn.active { background-color: #e67e22; }
-        .done-btn { background-color: #7f8c8d; color: white; font-size: 1.1rem; padding: 10px 20px; border-radius: 25px; }
+        .done-btn { background-color: #7f8c8d; color: white; font-size: 1.1rem; padding: 10px 20px; border-radius: 25px; min-width: 80px; }
         .done-btn.completed { background-color: var(--success-color); }
-        .delete-btn { background-color: var(--danger-color); color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; }
+        .delete-btn { background-color: var(--danger-color); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; border: none; cursor: pointer; }
 
-        /* 編集エリア */
+        /* 編集パネル */
         .edit-panel {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px dashed #3498db;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px dashed #3498db;
             border-radius: 15px;
             padding: 15px;
             width: 100%;
-            max-width: 470px;
+            max-width: 500px;
             margin-bottom: 20px;
             display: none;
             box-sizing: border-box;
         }
         .edit-panel.active { display: block; }
-        .setting-group { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;}
-        .setting-group input, .setting-group select { padding: 8px; border-radius: 5px; border: none; font-size: 1rem;}
+        .setting-group { margin-bottom: 12px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; font-size: 0.95rem; }
+        .setting-group input[type="time"] { padding: 6px; border-radius: 5px; border: none; font-size: 1rem; }
+        .checkbox-label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+
+        /* 通常画面用のタスク追加エリア */
+        .add-task-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 15px;
+            width: 100%;
+            max-width: 500px;
+            margin-top: 20px;
+            box-sizing: border-box;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .add-task-title { font-size: 1rem; font-weight: bold; color: var(--accent-color); margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+        .add-task-form { display: flex; gap: 10px; width: 100%; }
+        .add-task-form select { padding: 10px; border-radius: 10px; border: none; font-size: 1.1rem; background: #fff; }
+        .add-task-form input { flex: 1; padding: 10px; border-radius: 10px; border: none; font-size: 1rem; }
+        .add-btn { background-color: #2ecc71; color: white; padding: 10px 20px; border-radius: 10px; font-weight: bold; }
 
         /* タスク一覧 */
         .task-container {
@@ -154,15 +203,10 @@
 
         .task-card.completed {
             border-color: var(--success-color);
-            background: rgba(46, 204, 113, 0.15);
+            background: rgba(46, 204, 113, 0.12);
         }
 
-        .task-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
+        .task-info { display: flex; align-items: center; gap: 15px; }
         .task-icon { font-size: 2rem; }
         .task-name { font-size: 1.3rem; font-weight: bold; }
         .task-card.completed .task-name { text-decoration: line-through; color: rgba(255,255,255,0.4); }
@@ -184,19 +228,25 @@
         .popup-message { font-size: 1.6rem; font-weight: bold; color: #4a148c; margin-bottom: 15px; }
         .close-btn { background-color: #ff4081; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
 
-        .reset-btn { margin-top: 30px; background-color: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; }
+        .reset-btn { margin-top: 25px; background-color: rgba(255,255,255,0.15); color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <header>
         <h1>🌙 おやすみナビ</h1>
-        <button class="btn edit-btn" id="editToggleBtn" onclick="toggleEditMode()">へんしゅう</button>
+        <button class="btn edit-btn" id="editToggleBtn" 
+                onclick="handleEditClick()" 
+                onmousedown="startLongPress()" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()"
+                onTouchStart="startLongPress(event)" onTouchEnd="cancelLongPress(event)">
+            へんしゅう
+        </button>
     </header>
 
     <div class="clock-container">
-        <div class="analog-clock">
-            <div class="clock-face">
+        <div class="analog-clock" id="analogClock">
+            <div class="time-pie" id="timePie"></div>
+            <div class="clock-face" id="clockFace">
                 <div class="hand hour-hand" id="hourHand"></div>
                 <div class="minute-hand hand" id="minuteHand"></div>
                 <div class="second-hand hand" id="secondHand"></div>
@@ -211,20 +261,35 @@
             <label>⏰ <b>しゅうしんじこく:</b></label>
             <input type="time" id="bedTimeInput" value="21:00" onchange="saveSettings()">
         </div>
-        <hr style="border-color: rgba(255,255,255,0.1);">
-        <div class="setting-group">
-            <label>➕ <b>タスクをついか:</b></label>
+        
+        <div id="alarmSettings" style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 10px; margin-top: 10px;">
+            <div class="setting-group">
+                <b>🚨 アラームのおと設定:</b>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="alarm5MinBefore" onchange="saveSettings()" checked> 5分前 (できた)
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="alarmOnTime" onchange="saveSettings()" checked> オンタイム (おやすみ)
+                </label>
+            </div>
+        </div>
+        <div style="font-size: 0.8rem; color: #aeaeae; text-align: right;">※ボタン長押しでアラーム設定ON/OFFが連動します</div>
+    </div>
+
+    <div class="task-container" id="taskContainer"></div>
+
+    <div class="add-task-panel">
+        <div class="add-task-title">➕ 新しいタスクをあつめる</div>
+        <div class="add-task-form">
             <select id="newTaskIcon">
                 <option value="✨">✨</option><option value="🦷">🦷</option><option value="🛁">🛁</option>
                 <option value="👕">👕</option><option value="🍱">🍱</option><option value="📖">📖</option>
                 <option value="🧸">🧸</option><option value="🥛">🥛</option>
             </select>
-            <input type="text" id="newTaskName" placeholder="タスクのなまえ">
-            <button class="btn edit-btn" onclick="addNewTask()">ついか</button>
+            <input type="text" id="newTaskName" placeholder="なにをする？">
+            <button class="btn add-btn" onclick="addNewTask()">ついか</button>
         </div>
     </div>
-
-    <div class="task-container" id="taskContainer"></div>
 
     <button class="reset-btn" onclick="resetTasks()">ぜんぶ最初からやりなおす</button>
 
@@ -240,7 +305,7 @@
     <audio id="audioGoodNight" src="おやすみなさい.wav" preload="auto"></audio>
 
     <script>
-        // デフォルトタスクの更新（おふろ、ごはんを追加、指定の2つを削除）
+        // 初期タスク
         let tasks = [
             { id: 1, name: 'ごはんを たべる', icon: '🍱', completed: false },
             { id: 2, name: 'おふろに はいる', icon: '🛁', completed: false },
@@ -252,20 +317,49 @@
         const images = ['ジャスミン.png', 'ベル.png', 'アリエル.png', 'オーロラ姫.png', 'シンデレラ.png', '白雪姫.png'];
         let isEditMode = false;
         let bedTime = "21:00";
+        let longPressTimer;
+        let isLongPressed = false;
 
-        // ローカルストレージから設定を復元
+        // アラーム発火フラグ（1日に何度も鳴らないように制限）
+        let alarm5Fired = false;
+        let alarmOnTimeFired = false;
+
+        // ローカルストレージから復元
         if(localStorage.getItem('bedTime')) bedTime = localStorage.getItem('bedTime');
         if(localStorage.getItem('bedTasks')) tasks = JSON.parse(localStorage.getItem('bedTasks'));
 
-        // アプリ初期化
-        function init() {
+        window.onload = function() {
+            createClockNumbers();
+            if(localStorage.getItem('alarm5MinBefore')) {
+                document.getElementById('alarm5MinBefore').checked = localStorage.getItem('alarm5MinBefore') === 'true';
+            }
+            if(localStorage.getItem('alarmOnTime')) {
+                document.getElementById('alarmOnTime').checked = localStorage.getItem('alarmOnTime') === 'true';
+            }
             document.getElementById('bedTimeInput').value = bedTime;
             renderTasks();
             setInterval(updateClock, 1000);
             updateClock();
+        };
+
+        // アナログ時計の文字盤に数字(1〜12)を動的に配置
+        function createClockNumbers() {
+            const face = document.getElementById('clockFace');
+            const radius = 72; // 数字を配置する半径
+            for (let i = 1; i <= 12; i++) {
+                const angle = (i * 30) * (Math.PI / 180);
+                const x = 90 + radius * Math.sin(angle) - 10;
+                const y = 90 - radius * Math.cos(angle) - 10;
+                const numDiv = document.createElement('div');
+                numDiv.className = 'clock-number';
+                numDiv.innerText = i;
+                numDiv.style.left = `${x}px`;
+                numDiv.style.top = `${y}px`;
+                face.appendChild(numDiv);
+            }
         }
 
-        // タスク描画
+        // タスク一覧の描画
         function renderTasks() {
             const container = document.getElementById('taskContainer');
             container.innerHTML = '';
@@ -273,8 +367,6 @@
             tasks.forEach(task => {
                 const card = document.createElement('div');
                 card.className = `task-card ${task.completed ? 'completed' : ''}`;
-                
-                // ボタンのラベルテキストをトグル
                 const buttonText = task.completed ? 'もどす' : 'できた';
 
                 card.innerHTML = `
@@ -291,17 +383,16 @@
             });
         }
 
-        // できたボタンのトグル（誤操作対応）
+        // タスクの状態反転（できた ⇔ もどす）
         function toggleTask(id) {
             const task = tasks.find(t => t.id === id);
             if (!task) return;
 
-            task.completed = !task.completed; // 状態反転
+            task.completed = !task.completed;
             saveSettings();
             renderTasks();
 
             if (task.completed) {
-                // 完了した時だけ音声を再生し、ポップアップを出す
                 const allDone = tasks.every(t => t.completed);
                 if (allDone) {
                     playAudio('audioGoodNight');
@@ -313,23 +404,23 @@
             }
         }
 
-        // 音声再生（wavファイル呼び出し）
+        // 音声再生
         function playAudio(elementId) {
             const audio = document.getElementById(elementId);
             if (audio) {
                 audio.currentTime = 0;
-                audio.play().catch(e => console.log("音声再生がブロックされました。画面を一度クリックしてください。"));
+                audio.play().catch(e => console.log("音声の再生がブラウザによりブロックされました。"));
             }
         }
 
-        // 時計とタイマーの更新
+        // 時計とタイマー、および残り時間の青塗り描画
         function updateClock() {
             const now = new Date();
             const hours = now.getHours();
             const minutes = now.getMinutes();
             const seconds = now.getSeconds();
 
-            // アナログ時計の針の計算
+            // 針の角度計算
             const hourDeg = (hours % 12) * 30 + minutes * 0.5;
             const minuteDeg = minutes * 6;
             const secondDeg = seconds * 6;
@@ -338,32 +429,100 @@
             document.getElementById('minuteHand').style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
             document.getElementById('secondHand').style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
 
-            // カウントダウンタイマー処理
+            // 就寝時刻の取得・計算
             const [bedH, bedM] = bedTime.split(':').map(Number);
-            const bedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), bedH, bedM, 0);
-            
-            // 就寝時刻が過去の場合は翌日に設定
+            let bedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), bedH, bedM, 0);
             if (bedDate < now && now - bedDate > 0) {
                 bedDate.setDate(bedDate.getDate() + 1);
             }
 
             const diffMs = bedDate - now;
             const diffMin = Math.ceil(diffMs / 1000 / 60);
+            const totalSec = Math.floor(diffMs / 1000);
 
             const timerDisplay = document.getElementById('timerDisplay');
-            // 30分前（かつ未来）から表示
+            const timePie = document.getElementById('timePie');
+
+            // --- アラーム音の判定処理 ---
+            const useAlarm5 = document.getElementById('alarm5MinBefore').checked;
+            const useAlarmOnTime = document.getElementById('alarmOnTime').checked;
+
+            // 5分前アラーム (秒単位で300秒前〜298秒前の間に発火)
+            if (useAlarm5 && totalSec <= 300 && totalSec > 297 && !alarm5Fired) {
+                playAudio('audioDone');
+                alarm5Fired = true;
+            }
+            // オンタイムアラーム (就寝時刻ぴったり)
+            if (useAlarmOnTime && totalSec <= 0 && totalSec > -3 && !alarmOnTimeFired) {
+                playAudio('audioGoodNight');
+                alarmOnTimeFired = true;
+            }
+            // 日付が変わる、または時間が離れたらフラグをリセット
+            if (totalSec > 305) { alarm5Fired = false; alarmOnTimeFired = false; }
+
+
+            // --- 残り時間の青塗り ＆ テキストタイマー処理 (30分前から開始) ---
             if (diffMs > 0 && diffMin <= 30) {
-                const totalSec = Math.floor(diffMs / 1000);
                 const min = Math.floor(totalSec / 60);
                 const sec = totalSec % 60;
                 timerDisplay.innerText = `ねる時間まで あと ${min}分 ${sec.toString().padStart(2, '0')}秒`;
+
+                // 時計の「分針」が進む方向に合わせて青い扇形を描画
+                // 30分間 ＝ 180度分。残り1秒ごとに角度を減少させる
+                const currentMinutesInClock = minutes + (seconds / 60);
+                const startAngle = currentMinutesInClock * 6; // 現在の分針の角度
+                const targetAngle = bedM * 6;                // ゴール（就寝分）の角度
+                
+                // 扇形を conic-gradient で表現
+                timePie.style.background = `conic-gradient(var(--timer-blue) ${startAngle}deg, transparent ${startAngle}deg ${targetAngle}deg, var(--timer-blue) ${targetAngle}deg)`;
+                
+                // ※簡易的に「現在地から就寝時刻の角度」までを青塗り
+                let degStart = startAngle;
+                let degEnd = hourDeg; // 分針基準
+                timePie.style.background = `conic-gradient(from ${startAngle}deg, var(--timer-blue) 0deg, var(--timer-blue) ${(totalSec / 1800) * 180}deg, transparent ${(totalSec / 1800) * 180}deg)`;
+
             } else {
-                timerDisplay.innerText = ''; // 30分前以外は非表示
+                timerDisplay.innerText = '';
+                timePie.style.background = 'transparent'; // 30分前以外は青塗りを消す
             }
         }
 
-        // へんしゅうモード切替
-        function toggleEditMode() {
+        // 長押しの検知ロジック
+        function startLongPress(e) {
+            isLongPressed = false;
+            longPressTimer = setTimeout(() => {
+                isLongPressed = true;
+                triggerLongPressAction();
+            }, 1000); // 1秒以上の長押しで起動
+        }
+
+        function cancelLongPress(e) {
+            clearTimeout(longPressTimer);
+        }
+
+        // 長押しされた時の処理（アラーム設定の表示切り替えなど）
+        function triggerLongPressAction() {
+            const panel = document.getElementById('editPanel');
+            isEditMode = true;
+            document.getElementById('editToggleBtn').innerText = "おわる";
+            document.getElementById('editToggleBtn').classList.add('active');
+            panel.classList.add('active');
+            
+            // 長押しされたサインとして一瞬アラームエリアを強調
+            const alarmArea = document.getElementById('alarmSettings');
+            alarmArea.style.background = "rgba(52, 152, 219, 0.2)";
+            setTimeout(() => alarmArea.style.background = "transparent", 800);
+            
+            renderTasks();
+        }
+
+        // 普通にタップされた時の処理
+        function handleEditClick() {
+            if (isLongPressed) {
+                isLongPressed = false;
+                return; // 長押し処理がすでに行われた場合はスキップ
+            }
+            
             isEditMode = !isEditMode;
             const btn = document.getElementById('editToggleBtn');
             const panel = document.getElementById('editPanel');
@@ -380,7 +539,7 @@
             renderTasks();
         }
 
-        // タスク追加
+        // タスク追加（通常画面の入力から）
         function addNewTask() {
             const nameInput = document.getElementById('newTaskName');
             const iconInput = document.getElementById('newTaskIcon');
@@ -399,14 +558,14 @@
             renderTasks();
         }
 
-        // タスク削除
+        // タスク削除（編集画面の時のみボタンが出現）
         function deleteTask(id) {
             tasks = tasks.filter(t => t.id !== id);
             saveSettings();
             renderTasks();
         }
 
-        // ポップアップ制御
+        // ポップアップ表示
         function showPopup(isAllCompleted) {
             const overlay = document.getElementById('overlay');
             const popupImage = document.getElementById('popupImage');
@@ -427,22 +586,24 @@
             document.getElementById('overlay').classList.remove('active');
         }
 
-        // ローカルストレージへ保存
+        // 設定保存
         function saveSettings() {
             bedTime = document.getElementById('bedTimeInput').value;
             localStorage.setItem('bedTime', bedTime);
             localStorage.setItem('bedTasks', JSON.stringify(tasks));
+            localStorage.setItem('alarm5MinBefore', document.getElementById('alarm5MinBefore').checked);
+            localStorage.setItem('alarmOnTime', document.getElementById('alarmOnTime').checked);
         }
 
-        // リセット
+        // 完全リセット
         function resetTasks() {
             tasks.forEach(t => t.completed = false);
+            alarm5Fired = false;
+            alarmOnTimeFired = false;
             saveSettings();
             renderTasks();
             closePopup();
         }
-
-        window.onload = init;
     </script>
 </body>
 </html>
