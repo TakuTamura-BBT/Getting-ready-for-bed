@@ -6,16 +6,19 @@
     <title>おやすみのじゅんびアプリ</title>
     <style>
         :root {
-            --bg-color: #1a1a2e;
-            --card-bg: #16213e;
-            --text-color: #e2e8f0;
+            /* 背景を黒から、少し明るい紫・青ベースのグラデーションへ変更 */
+            --bg-gradient: linear-gradient(135deg, #2c1a4d 0%, #1a2a6c 100%);
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
             --accent-color: #f1c40f;
             --success-color: #2ecc71;
+            --danger-color: #e74c3c;
         }
 
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-            background-color: var(--bg-color);
+            background: var(--bg-gradient);
+            background-attachment: fixed;
             color: var(--text-color);
             margin: 0;
             padding: 20px;
@@ -25,19 +28,108 @@
             min-height: 100vh;
         }
 
+        header {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
         h1 {
             color: var(--accent-color);
-            font-size: 2rem;
-            margin-bottom: 10px;
-            text-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+            font-size: 1.8rem;
+            margin: 0;
+            text-shadow: 0 0 10px rgba(241, 196, 15, 0.3);
         }
 
-        .subtitle {
-            font-size: 1rem;
-            margin-bottom: 30px;
-            color: #8a99ad;
+        /* アナログ時計とタイマーのエリア */
+        .clock-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 25px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 470px;
         }
 
+        .analog-clock {
+            width: 120px;
+            height: 120px;
+            border: 4px solid var(--accent-color);
+            border-radius: 50%;
+            position: relative;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.2);
+        }
+
+        .clock-face {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom;
+            background: #1a1a2e;
+            border-radius: 4px;
+        }
+
+        .hour-hand { width: 4px; height: 30px; margin-left: -2px; }
+        .minute-hand { width: 3px; height: 45px; margin-left: -1.5px; background: #34495e; }
+        .second-hand { width: 1.5px; height: 50px; margin-left: -0.75px; background: var(--danger-color); }
+        .center-dot { position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; background: var(--accent-color); border-radius: 50%; transform: translate(-50%, -50%); }
+
+        .timer-display {
+            margin-top: 10px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #ff7675;
+            min-height: 1.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* ボタン群 */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn:active { transform: scale(0.95); }
+        .edit-btn { background-color: #3498db; color: white; }
+        .edit-btn.active { background-color: #e67e22; }
+        .done-btn { background-color: #7f8c8d; color: white; font-size: 1.1rem; padding: 10px 20px; border-radius: 25px; }
+        .done-btn.completed { background-color: var(--success-color); }
+        .delete-btn { background-color: var(--danger-color); color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; }
+
+        /* 編集エリア */
+        .edit-panel {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px dashed #3498db;
+            border-radius: 15px;
+            padding: 15px;
+            width: 100%;
+            max-width: 470px;
+            margin-bottom: 20px;
+            display: none;
+            box-sizing: border-box;
+        }
+        .edit-panel.active { display: block; }
+        .setting-group { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;}
+        .setting-group input, .setting-group select { padding: 8px; border-radius: 5px; border: none; font-size: 1rem;}
+
+        /* タスク一覧 */
         .task-container {
             width: 100%;
             max-width: 500px;
@@ -47,20 +139,22 @@
         }
 
         .task-card {
-            background-color: var(--card-bg);
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
             border-radius: 15px;
-            padding: 20px;
+            padding: 15px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            transition: transform 0.2s, border-color 0.2s;
-            border: 2px solid transparent;
-            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 2px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
         }
 
-        .task-card:hover {
-            transform: translateY(-2px);
+        .task-card.completed {
+            border-color: var(--success-color);
+            background: rgba(46, 204, 113, 0.15);
         }
 
         .task-info {
@@ -69,249 +163,255 @@
             gap: 15px;
         }
 
-        .task-icon {
-            font-size: 1.8rem;
-        }
+        .task-icon { font-size: 2rem; }
+        .task-name { font-size: 1.3rem; font-weight: bold; }
+        .task-card.completed .task-name { text-decoration: line-through; color: rgba(255,255,255,0.4); }
 
-        .task-name {
-            font-size: 1.4rem;
-            font-weight: bold;
-        }
-
-        .checkbox {
-            width: 30px;
-            height: 30px;
-            border: 3px solid #455a64;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            background-color: #0f172a;
-        }
-
-        /* 完了状態のスタイル */
-        .task-card.completed {
-            border-color: var(--success-color);
-            opacity: 0.8;
-        }
-
-        .task-card.completed .checkbox {
-            background-color: var(--success-color);
-            border-color: var(--success-color);
-        }
-
-        .task-card.completed .checkbox::after {
-            content: '✓';
-            color: white;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        .task-card.completed .task-name {
-            text-decoration: line-through;
-            color: #64748b;
-        }
-
-        /* リセットボタン */
-        .reset-btn {
-            margin-top: 30px;
-            background-color: #34495e;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .reset-btn:hover {
-            background-color: #4b6584;
-        }
-
-        /* ポップアップ（画像表示）のスタイル */
+        /* ポップアップ */
         .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.85);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
+            display: flex; justify-content: center; align-items: center; z-index: 1000;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
-
-        .overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
+        .overlay.active { opacity: 1; pointer-events: auto; }
         .popup-content {
             background: linear-gradient(135deg, #ffeef8 0%, #f0e6ff 100%);
-            padding: 30px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(255,255,255,0.2);
-            max-width: 90%;
-            max-height: 80vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            animation: scaleUp 0.3s ease-out;
+            padding: 25px; border-radius: 20px; text-align: center;
+            max-width: 85%; max-height: 85vh; display: flex; flex-direction: column; align-items: center;
         }
+        .popup-image { max-width: 100%; max-height: 50vh; object-fit: contain; border-radius: 10px; margin-bottom: 15px; }
+        .popup-message { font-size: 1.6rem; font-weight: bold; color: #4a148c; margin-bottom: 15px; }
+        .close-btn { background-color: #ff4081; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
 
-        @keyframes scaleUp {
-            from { transform: scale(0.8); }
-            to { transform: scale(1); }
-        }
-
-        .popup-image {
-            max-width: 100%;
-            max-height: 50vh;
-            object-fit: contain;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
-        .popup-message {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #4a148c;
-            margin: 10px 0;
-        }
-
-        .close-btn {
-            background-color: #ff4081;
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(255, 64, 129, 0.4);
-            margin-top: 10px;
-        }
-
-        .close-btn:hover {
-            background-color: #f50057;
-        }
+        .reset-btn { margin-top: 30px; background-color: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <h1>🌙 おやすみのじゅんび</h1>
-    <div class="subtitle">ぜんぶできたら ねようね！</div>
+    <header>
+        <h1>🌙 おやすみナビ</h1>
+        <button class="btn edit-btn" id="editToggleBtn" onclick="toggleEditMode()">へんしゅう</button>
+    </header>
 
-    <div class="task-container" id="taskContainer">
-        <!-- タスクカードが JavaScript でここに生成されます -->
+    <div class="clock-container">
+        <div class="analog-clock">
+            <div class="clock-face">
+                <div class="hand hour-hand" id="hourHand"></div>
+                <div class="minute-hand hand" id="minuteHand"></div>
+                <div class="second-hand hand" id="secondHand"></div>
+                <div class="center-dot"></div>
+            </div>
+        </div>
+        <div class="timer-display" id="timerDisplay"></div>
     </div>
 
-    <button class="reset-btn" onclick="resetTasks()">もういちど やる</button>
+    <div class="edit-panel" id="editPanel">
+        <div class="setting-group">
+            <label>⏰ <b>しゅうしんじこく:</b></label>
+            <input type="time" id="bedTimeInput" value="21:00" onchange="saveSettings()">
+        </div>
+        <hr style="border-color: rgba(255,255,255,0.1);">
+        <div class="setting-group">
+            <label>➕ <b>タスクをついか:</b></label>
+            <select id="newTaskIcon">
+                <option value="✨">✨</option><option value="🦷">🦷</option><option value="🛁">🛁</option>
+                <option value="👕">👕</option><option value="🍱">🍱</option><option value="📖">📖</option>
+                <option value="🧸">🧸</option><option value="🥛">🥛</option>
+            </select>
+            <input type="text" id="newTaskName" placeholder="タスクのなまえ">
+            <button class="btn edit-btn" onclick="addNewTask()">ついか</button>
+        </div>
+    </div>
 
-    <!-- ポップアップ表示エリア -->
+    <div class="task-container" id="taskContainer"></div>
+
+    <button class="reset-btn" onclick="resetTasks()">ぜんぶ最初からやりなおす</button>
+
     <div class="overlay" id="overlay" onclick="closePopup()">
         <div class="popup-content" onclick="event.stopPropagation()">
-            <img src="" alt="ごほうび画像" class="popup-image" id="popupImage">
+            <img src="" alt="ごほうび" class="popup-image" id="popupImage">
             <div class="popup-message" id="popupMessage">できた！</div>
             <button class="close-btn" onclick="closePopup()">つぎへ</button>
         </div>
     </div>
 
+    <audio id="audioDone" src="できた.wav" preload="auto"></audio>
+    <audio id="audioGoodNight" src="おやすみなさい.wav" preload="auto"></audio>
+
     <script>
-        // 就寝準備のタスク設定（アイコンやテキストは自由に変更できます）
-        const tasks = [
-            { id: 1, name: 'トイレに いく', icon: '🚽' },
-            { id: 2, name: 'はを みがく', icon: '🪥' },
-            { id: 3, name: 'パジャマを きる', icon: '👕' },
-            { id: 4, name: 'あしたの じゅんび', icon: '🎒' },
-            { id: 5, name: 'おふとんに はいる', icon: '🛌' }
+        // デフォルトタスクの更新（おふろ、ごはんを追加、指定の2つを削除）
+        let tasks = [
+            { id: 1, name: 'ごはんを たべる', icon: '🍱', completed: false },
+            { id: 2, name: 'おふろに はいる', icon: '🛁', completed: false },
+            { id: 3, name: 'トイレに いく', icon: '🚽', completed: false },
+            { id: 4, name: 'はを みがく', icon: '🪥', completed: false },
+            { id: 5, name: 'パジャマを きる', icon: '👕', completed: false }
         ];
 
-        // ごほうび画像のリスト（同じフォルダに保存したファイル名）
-        const images = [
-            'ジャスミン.png',
-            'ベル.png',
-            'アリエル.png',
-            'オーロラ姫.png',
-            'シンデレラ.png',
-            '白雪姫.png'
-        ];
+        const images = ['ジャスミン.png', 'ベル.png', 'アリエル.png', 'オーロラ姫.png', 'シンデレラ.png', '白雪姫.png'];
+        let isEditMode = false;
+        let bedTime = "21:00";
 
-        // 各タスクの完了状態を管理する配列
-        let completedTasks = [];
+        // ローカルストレージから設定を復元
+        if(localStorage.getItem('bedTime')) bedTime = localStorage.getItem('bedTime');
+        if(localStorage.getItem('bedTasks')) tasks = JSON.parse(localStorage.getItem('bedTasks'));
 
-        // アプリの初期化
-        function initApp() {
+        // アプリ初期化
+        function init() {
+            document.getElementById('bedTimeInput').value = bedTime;
+            renderTasks();
+            setInterval(updateClock, 1000);
+            updateClock();
+        }
+
+        // タスク描画
+        function renderTasks() {
             const container = document.getElementById('taskContainer');
             container.innerHTML = '';
 
             tasks.forEach(task => {
                 const card = document.createElement('div');
-                card.className = 'task-card';
-                card.id = `task-${task.id}`;
-                card.onclick = () => toggleTask(task.id);
+                card.className = `task-card ${task.completed ? 'completed' : ''}`;
+                
+                // ボタンのラベルテキストをトグル
+                const buttonText = task.completed ? 'もどす' : 'できた';
 
                 card.innerHTML = `
                     <div class="task-info">
                         <span class="task-icon">${task.icon}</span>
                         <span class="task-name">${task.name}</span>
                     </div>
-                    <div class="checkbox"></div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        ${isEditMode ? `<button class="delete-btn" onclick="deleteTask(${task.id})">さくじょ</button>` : ''}
+                        <button class="btn done-btn ${task.completed ? 'completed' : ''}" onclick="toggleTask(${task.id})">${buttonText}</button>
+                    </div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        // タスクの完了・未完了を切り替える関数
+        // できたボタンのトグル（誤操作対応）
         function toggleTask(id) {
-            const card = document.getElementById(`task-${id}`);
-            const index = completedTasks.indexOf(id);
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
 
-            // すでに完了している場合は何もしない（何度も喋るのを防ぐため）
-            if (index !== -1) return;
+            task.completed = !task.completed; // 状態反転
+            saveSettings();
+            renderTasks();
 
-            // 完了状態にする
-            completedTasks.push(id);
-            card.classList.add('completed');
-
-            // 全て完了したかどうかの判定
-            const isAllCompleted = completedTasks.length === tasks.length;
-
-            if (isAllCompleted) {
-                speak('おやすみなさい');
-                showPopup(true);
-            } else {
-                speak('できた');
-                showPopup(false);
+            if (task.completed) {
+                // 完了した時だけ音声を再生し、ポップアップを出す
+                const allDone = tasks.every(t => t.completed);
+                if (allDone) {
+                    playAudio('audioGoodNight');
+                    showPopup(true);
+                } else {
+                    playAudio('audioDone');
+                    showPopup(false);
+                }
             }
         }
 
-        // 音声を再生する関数（Web Speech API）
-        function speak(text) {
-            // ブラウザの音声合成に割り込みが入らないよう一度リセット
-            window.speechSynthesis.cancel();
-            
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'ja-JP';
-            utterance.rate = 1.0; // 読み上げ速度
-            utterance.pitch = 1.2; // 少し高めの声でお子様向けに
-            window.speechSynthesis.speak(utterance);
+        // 音声再生（wavファイル呼び出し）
+        function playAudio(elementId) {
+            const audio = document.getElementById(elementId);
+            if (audio) {
+                audio.currentTime = 0;
+                audio.play().catch(e => console.log("音声再生がブロックされました。画面を一度クリックしてください。"));
+            }
         }
 
-        // ポップアップを表示する関数
+        // 時計とタイマーの更新
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+
+            // アナログ時計の針の計算
+            const hourDeg = (hours % 12) * 30 + minutes * 0.5;
+            const minuteDeg = minutes * 6;
+            const secondDeg = seconds * 6;
+
+            document.getElementById('hourHand').style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
+            document.getElementById('minuteHand').style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
+            document.getElementById('secondHand').style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
+
+            // カウントダウンタイマー処理
+            const [bedH, bedM] = bedTime.split(':').map(Number);
+            const bedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), bedH, bedM, 0);
+            
+            // 就寝時刻が過去の場合は翌日に設定
+            if (bedDate < now && now - bedDate > 0) {
+                bedDate.setDate(bedDate.getDate() + 1);
+            }
+
+            const diffMs = bedDate - now;
+            const diffMin = Math.ceil(diffMs / 1000 / 60);
+
+            const timerDisplay = document.getElementById('timerDisplay');
+            // 30分前（かつ未来）から表示
+            if (diffMs > 0 && diffMin <= 30) {
+                const totalSec = Math.floor(diffMs / 1000);
+                const min = Math.floor(totalSec / 60);
+                const sec = totalSec % 60;
+                timerDisplay.innerText = `ねる時間まで あと ${min}分 ${sec.toString().padStart(2, '0')}秒`;
+            } else {
+                timerDisplay.innerText = ''; // 30分前以外は非表示
+            }
+        }
+
+        // へんしゅうモード切替
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const btn = document.getElementById('editToggleBtn');
+            const panel = document.getElementById('editPanel');
+            
+            if(isEditMode) {
+                btn.innerText = "おわる";
+                btn.classList.add('active');
+                panel.classList.add('active');
+            } else {
+                btn.innerText = "へんしゅう";
+                btn.classList.remove('active');
+                panel.classList.remove('active');
+            }
+            renderTasks();
+        }
+
+        // タスク追加
+        function addNewTask() {
+            const nameInput = document.getElementById('newTaskName');
+            const iconInput = document.getElementById('newTaskIcon');
+            if(!nameInput.value.trim()) return;
+
+            const newId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
+            tasks.push({
+                id: newId,
+                name: nameInput.value,
+                icon: iconInput.value,
+                completed: false
+            });
+
+            nameInput.value = '';
+            saveSettings();
+            renderTasks();
+        }
+
+        // タスク削除
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveSettings();
+            renderTasks();
+        }
+
+        // ポップアップ制御
         function showPopup(isAllCompleted) {
             const overlay = document.getElementById('overlay');
             const popupImage = document.getElementById('popupImage');
             const popupMessage = document.getElementById('popupMessage');
 
-            // ランダムで画像を選択
             const randomIndex = Math.floor(Math.random() * images.length);
             popupImage.src = images[randomIndex];
 
@@ -320,25 +420,29 @@
             } else {
                 popupMessage.innerText = 'できた！ 👏';
             }
-
             overlay.classList.add('active');
         }
 
-        // ポップアップを閉じる関数
         function closePopup() {
             document.getElementById('overlay').classList.remove('active');
         }
 
-        // 最初からやり直す関数
+        // ローカルストレージへ保存
+        function saveSettings() {
+            bedTime = document.getElementById('bedTimeInput').value;
+            localStorage.setItem('bedTime', bedTime);
+            localStorage.setItem('bedTasks', JSON.stringify(tasks));
+        }
+
+        // リセット
         function resetTasks() {
-            completedTasks = [];
-            const cards = document.querySelectorAll('.task-card');
-            cards.forEach(card => card.classList.remove('completed'));
+            tasks.forEach(t => t.completed = false);
+            saveSettings();
+            renderTasks();
             closePopup();
         }
 
-        // ページ読み込み時に実行
-        window.onload = initApp;
+        window.onload = init;
     </script>
 </body>
 </html>
