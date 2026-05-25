@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>おやすみのじゅんびアプリ</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #e2e8f0;
+            --accent-color: #f1c40f;
+            --success-color: #2ecc71;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: var(--accent-color);
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            margin-bottom: 30px;
+            color: #8a99ad;
+        }
+
+        .task-container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .task-card {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: transform 0.2s, border-color 0.2s;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+
+        .task-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .task-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .task-icon {
+            font-size: 1.8rem;
+        }
+
+        .task-name {
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        .checkbox {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #455a64;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            background-color: #0f172a;
+        }
+
+        /* 完了状態のスタイル */
+        .task-card.completed {
+            border-color: var(--success-color);
+            opacity: 0.8;
+        }
+
+        .task-card.completed .checkbox {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        .task-card.completed .checkbox::after {
+            content: '✓';
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .task-card.completed .task-name {
+            text-decoration: line-through;
+            color: #64748b;
+        }
+
+        /* リセットボタン */
+        .reset-btn {
+            margin-top: 30px;
+            background-color: #34495e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .reset-btn:hover {
+            background-color: #4b6584;
+        }
+
+        /* ポップアップ（画像表示）のスタイル */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .popup-content {
+            background: linear-gradient(135deg, #ffeef8 0%, #f0e6ff 100%);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(255,255,255,0.2);
+            max-width: 90%;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: scaleUp 0.3s ease-out;
+        }
+
+        @keyframes scaleUp {
+            from { transform: scale(0.8); }
+            to { transform: scale(1); }
+        }
+
+        .popup-image {
+            max-width: 100%;
+            max-height: 50vh;
+            object-fit: contain;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .popup-message {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #4a148c;
+            margin: 10px 0;
+        }
+
+        .close-btn {
+            background-color: #ff4081;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(255, 64, 129, 0.4);
+            margin-top: 10px;
+        }
+
+        .close-btn:hover {
+            background-color: #f50057;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🌙 おやすみのじゅんび</h1>
+    <div class="subtitle">ぜんぶできたら ねようね！</div>
+
+    <div class="task-container" id="taskContainer">
+        <!-- タスクカードが JavaScript でここに生成されます -->
+    </div>
+
+    <button class="reset-btn" onclick="resetTasks()">もういちど やる</button>
+
+    <!-- ポップアップ表示エリア -->
+    <div class="overlay" id="overlay" onclick="closePopup()">
+        <div class="popup-content" onclick="event.stopPropagation()">
+            <img src="" alt="ごほうび画像" class="popup-image" id="popupImage">
+            <div class="popup-message" id="popupMessage">できた！</div>
+            <button class="close-btn" onclick="closePopup()">つぎへ</button>
+        </div>
+    </div>
+
+    <script>
+        // 就寝準備のタスク設定（アイコンやテキストは自由に変更できます）
+        const tasks = [
+            { id: 1, name: 'トイレに いく', icon: '🚽' },
+            { id: 2, name: 'はを みがく', icon: '🪥' },
+            { id: 3, name: 'パジャマを きる', icon: '👕' },
+            { id: 4, name: 'あしたの じゅんび', icon: '🎒' },
+            { id: 5, name: 'おふとんに はいる', icon: '🛌' }
+        ];
+
+        // ごほうび画像のリスト（同じフォルダに保存したファイル名）
+        const images = [
+            'ジャスミン.png',
+            'ベル.png',
+            'アリエル.png',
+            'オーロラ姫.png',
+            'シンデレラ.png',
+            '白雪姫.png'
+        ];
+
+        // 各タスクの完了状態を管理する配列
+        let completedTasks = [];
+
+        // アプリの初期化
+        function initApp() {
+            const container = document.getElementById('taskContainer');
+            container.innerHTML = '';
+
+            tasks.forEach(task => {
+                const card = document.createElement('div');
+                card.className = 'task-card';
+                card.id = `task-${task.id}`;
+                card.onclick = () => toggleTask(task.id);
+
+                card.innerHTML = `
+                    <div class="task-info">
+                        <span class="task-icon">${task.icon}</span>
+                        <span class="task-name">${task.name}</span>
+                    </div>
+                    <div class="checkbox"></div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // タスクの完了・未完了を切り替える関数
+        function toggleTask(id) {
+            const card = document.getElementById(`task-${id}`);
+            const index = completedTasks.indexOf(id);
+
+            // すでに完了している場合は何もしない（何度も喋るのを防ぐため）
+            if (index !== -1) return;
+
+            // 完了状態にする
+            completedTasks.push(id);
+            card.classList.add('completed');
+
+            // 全て完了したかどうかの判定
+            const isAllCompleted = completedTasks.length === tasks.length;
+
+            if (isAllCompleted) {
+                speak('おやすみなさい');
+                showPopup(true);
+            } else {
+                speak('できた');
+                showPopup(false);
+            }
+        }
+
+        // 音声を再生する関数（Web Speech API）
+        function speak(text) {
+            // ブラウザの音声合成に割り込みが入らないよう一度リセット
+            window.speechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ja-JP';
+            utterance.rate = 1.0; // 読み上げ速度
+            utterance.pitch = 1.2; // 少し高めの声でお子様向けに
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // ポップアップを表示する関数
+        function showPopup(isAllCompleted) {
+            const overlay = document.getElementById('overlay');
+            const popupImage = document.getElementById('popupImage');
+            const popupMessage = document.getElementById('popupMessage');
+
+            // ランダムで画像を選択
+            const randomIndex = Math.floor(Math.random() * images.length);
+            popupImage.src = images[randomIndex];
+
+            if (isAllCompleted) {
+                popupMessage.innerHTML = '✨ ぜんぶ できたね！ ✨<br>おやすみなさい 🌙';
+            } else {
+                popupMessage.innerText = 'できた！ 👏';
+            }
+
+            overlay.classList.add('active');
+        }
+
+        // ポップアップを閉じる関数
+        function closePopup() {
+            document.getElementById('overlay').classList.remove('active');
+        }
+
+        // 最初からやり直す関数
+        function resetTasks() {
+            completedTasks = [];
+            const cards = document.querySelectorAll('.task-card');
+            cards.forEach(card => card.classList.remove('completed'));
+            closePopup();
+        }
+
+        // ページ読み込み時に実行
+        window.onload = initApp;
+    </script>
+</body>
+</html>
