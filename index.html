@@ -6,14 +6,13 @@
     <title>おやすみのじゅんびアプリ</title>
     <style>
         :root {
-            /* ディズニーの夜空をイメージした深いロイヤルブルーと紫のグラデーション */
             --bg-gradient: linear-gradient(135deg, #101535 0%, #2a1b4e 50%, #461e57 100%);
             --card-bg: rgba(255, 255, 255, 0.12);
             --text-color: #ffffff;
-            --accent-color: #fbd249; /* ピクシーダストのようなゴールド */
+            --accent-color: #fbd249;
             --success-color: #a8e6cf;
             --danger-color: #ff7675;
-            --timer-blue: #3867d6; /* 添付画像に近い鮮やかなブルー */
+            --timer-blue: #3867d6;
         }
 
         body {
@@ -33,276 +32,116 @@
             -webkit-user-select: none;
         }
 
-        /* ディズニーっぽいお城の背景シルエット（CSSアート） */
+        /* 背景のお城シルエット */
         body::before {
-            content: "";
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 800px;
-            height: 220px;
+            content: ""; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 800px; height: 220px;
             background: 
-                /* 中央の大尖塔 */
                 linear-gradient(90deg, transparent 48%, #1c1437 48%, #1c1437 52%, transparent 52%),
                 conic-gradient(from 150deg at 50% 0%, #1c1437 60deg, transparent 60deg),
-                /* 左右の塔 */
                 linear-gradient(90deg, transparent 35%, #160f2e 35%, #160f2e 42%, transparent 42%),
                 linear-gradient(90deg, transparent 58%, #160f2e 58%, #160f2e 65%, transparent 65%),
-                /* 城の壁ベース */
                 linear-gradient(to top, #0f0a21 0%, #140d2b 80%, transparent 100%);
             background-size: 100% 100%, 60px 80px, 100% 100%, 100% 100%, 100% 100%;
             background-position: bottom center, center bottom 120px, bottom center, bottom center, bottom center;
-            background-repeat: no-repeat;
-            opacity: 0.4;
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        /* 夜空のきらきら星 */
-        body::after {
-            content: "★ . * ★ . * . ★";
-            position: fixed;
-            top: 10%;
-            left: 10%;
-            width: 80%;
-            height: 30%;
-            color: rgba(255, 255, 255, 0.3);
-            font-size: 1.5rem;
-            word-spacing: 100px;
-            letter-spacing: 50px;
-            line-height: 80px;
-            z-index: -1;
-            pointer-events: none;
+            background-repeat: no-repeat; opacity: 0.4; z-index: -1; pointer-events: none;
         }
 
         header {
-            width: 100%;
-            max-width: 500px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            z-index: 10;
+            width: 100%; max-width: 500px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; z-index: 10;
         }
 
-        h1 {
-            color: var(--accent-color);
-            font-size: 1.8rem;
-            margin: 0;
-            text-shadow: 0 0 12px rgba(251, 210, 73, 0.4);
-        }
+        h1 { color: var(--accent-color); font-size: 1.8rem; margin: 0; text-shadow: 0 0 12px rgba(251, 210, 73, 0.4); }
 
-        /* 時計 & タイマーエリア */
         .clock-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 25px;
-            background: rgba(15, 20, 50, 0.6);
-            padding: 20px;
-            border-radius: 25px;
-            width: 100%;
-            max-width: 460px;
-            box-sizing: border-box;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; background: rgba(15, 20, 50, 0.6);
+            padding: 20px; border-radius: 25px; width: 100%; max-width: 460px; box-sizing: border-box;
+            border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
         }
 
-        /* 改修：添付画像スタイルの美しいアナログ時計 */
-        .analog-clock {
-            width: 180px;
-            height: 180px;
-            border: 4px solid #ffffff;
-            border-radius: 50%;
-            position: relative;
-            background: #ffffff;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-        }
+        .analog-clock { width: 180px; height: 180px; border: 4px solid #ffffff; border-radius: 50%; position: relative; background: #ffffff; box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+        .clock-svg-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: rotate(-90deg); pointer-events: none; z-index: 2; }
+        .clock-face { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 3; }
+        .clock-number { position: absolute; width: 20px; height: 20px; text-align: center; font-weight: bold; color: #2c3e50; font-size: 1.1rem; }
 
-        /* SVGを用いた正確なフチ沿い青塗りゲージ */
-        .clock-svg-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            transform: rotate(-90deg); /* 12時位置をスタートにする */
-            pointer-events: none;
-            z-index: 2;
-        }
-
-        .clock-face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: 3;
-        }
-
-        .clock-number {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            text-align: center;
-            font-weight: bold;
-            color: #2c3e50;
-            font-size: 1.1rem;
-        }
-
-        .hand {
-            position: absolute;
-            bottom: 50%;
-            left: 50%;
-            transform-origin: bottom;
-            background: #2c3e50;
-            border-radius: 4px;
-        }
-
+        .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom; background: #2c3e50; border-radius: 4px; }
         .hour-hand { width: 5px; height: 45px; margin-left: -2.5px; }
         .minute-hand { width: 3.5px; height: 65px; margin-left: -1.75px; background: #34495e; }
         .second-hand { width: 1.5px; height: 75px; margin-left: -0.75px; background: var(--danger-color); }
         .center-dot { position: absolute; top: 50%; left: 50%; width: 10px; height: 10px; background: #2c3e50; border-radius: 50%; transform: translate(-50%, -50%); }
 
-        .timer-display {
-            margin-top: 15px;
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: #74b9ff;
-            min-height: 1.5rem;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
+        .timer-display { margin-top: 15px; font-size: 1.4rem; font-weight: bold; color: #74b9ff; min-height: 1.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 
-        /* ボタン */
-        .btn {
-            padding: 8px 16px;
-            border-radius: 20px;
-            border: none;
-            font-size: 0.9rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-        }
-        .btn:active { transform: scale(0.95); }
+        .btn { padding: 8px 16px; border-radius: 20px; border: none; font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: background 0.2s; }
         .edit-btn { background-color: #4a69bd; color: white; }
         .edit-btn.active { background-color: #e67e22; }
         
-        /* できたボタンの形状を画像風にブラッシュアップ */
+        /* 通常時の「できた！」ボタン */
         .done-btn { 
             background: linear-gradient(135deg, #ff9f43 0%, #ff6b6b 100%); 
-            color: white; 
-            font-size: 1.1rem; 
-            padding: 10px 22px; 
-            border-radius: 25px; 
-            min-width: 90px;
-            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.4);
-        }
-        .done-btn.completed { 
-            background: linear-gradient(135deg, #2ed573 0%, #1e90ff 100%); 
-            box-shadow: none;
+            color: white; font-size: 1.1rem; padding: 10px 22px; border-radius: 25px; min-width: 90px;
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.4); font-weight: bold; border: none; cursor: pointer;
         }
         .delete-btn { background-color: var(--danger-color); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; border: none; cursor: pointer; }
 
-        /* 編集パネル */
-        .edit-panel {
-            background: rgba(0, 0, 0, 0.6);
-            border: 2px dashed #4a69bd;
-            border-radius: 15px;
-            padding: 15px;
-            width: 100%;
-            max-width: 500px;
-            margin-bottom: 20px;
-            display: none;
-            box-sizing: border-box;
-            z-index: 10;
+        /* 改修：タスク完了後の画像スタンプエリア（添付画像を再現） */
+        .completed-stamp-container {
+            position: relative;
+            width: 75px;
+            height: 75px;
+            cursor: pointer;
         }
+
+        /* プリンセスの丸型写真 */
+        .princess-stamp {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid #ff4d4d; /* 添付画像のような赤・オレンジ系の太フチ */
+            object-fit: cover;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        /* 写真の右下に重なる「できた！」小文字フラグ */
+        .stamp-label {
+            position: absolute;
+            bottom: 0px;
+            right: -5px;
+            background: linear-gradient(to bottom, #ff9f43, #ff5e3a);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            white-space: nowrap;
+        }
+
+        .edit-panel { background: rgba(0, 0, 0, 0.6); border: 2px dashed #4a69bd; border-radius: 15px; padding: 15px; width: 100%; max-width: 500px; margin-bottom: 20px; display: none; box-sizing: border-box; z-index: 10; }
         .edit-panel.active { display: block; }
         .setting-group { margin-bottom: 12px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; font-size: 0.95rem; }
         .setting-group input[type="time"] { padding: 6px; border-radius: 5px; border: none; font-size: 1rem; }
         .checkbox-label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
 
-        /* 通常画面用のタスク追加エリア */
-        .add-task-panel {
-            background: rgba(255, 255, 255, 0.06);
-            border-radius: 15px;
-            padding: 15px;
-            width: 100%;
-            max-width: 500px;
-            margin-top: 20px;
-            box-sizing: border-box;
-            border: 1px solid rgba(255,255,255,0.1);
-            z-index: 10;
-        }
+        .add-task-panel { background: rgba(255, 255, 255, 0.06); border-radius: 15px; padding: 15px; width: 100%; max-width: 500px; margin-top: 20px; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.1); z-index: 10; }
         .add-task-title { font-size: 1rem; font-weight: bold; color: var(--accent-color); margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
         .add-task-form { display: flex; gap: 10px; width: 100%; }
         .add-task-form select { padding: 10px; border-radius: 10px; border: none; font-size: 1.1rem; background: #fff; }
         .add-task-form input { flex: 1; padding: 10px; border-radius: 10px; border: none; font-size: 1rem; }
-        .add-btn { background: linear-gradient(135deg, #2ecc71, #00d2d3); color: white; padding: 10px 20px; border-radius: 10px; font-weight: bold; }
+        .add-btn { background: linear-gradient(135deg, #2ecc71, #00d2d3); color: white; padding: 10px 20px; border-radius: 10px; font-weight: bold; border: none; cursor: pointer; }
 
-        /* タスク一覧 */
-        .task-container {
-            width: 100%;
-            max-width: 500px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            z-index: 10;
-        }
-
-        .task-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border-radius: 20px;
-            padding: 18px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-            border: 2px solid rgba(255,255,255,0.08);
-            transition: all 0.3s ease;
-        }
-
-        .task-card.completed {
-            border-color: rgba(251, 210, 73, 0.5);
-            background: rgba(251, 210, 73, 0.1);
-        }
-
+        .task-container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 15px; z-index: 10; }
+        .task-card { background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 20px; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 6px 20px rgba(0,0,0,0.15); border: 2px solid rgba(255,255,255,0.08); transition: all 0.3s ease; }
+        .task-card.completed { border-color: rgba(251, 210, 73, 0.4); background: rgba(251, 210, 73, 0.08); }
         .task-info { display: flex; align-items: center; gap: 15px; }
-        
-        /* 完了時にプリンセスのティアラ👑アイコンに変身する箇所 */
-        .task-icon-container {
-            font-size: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 45px;
-            height: 45px;
-            transition: transform 0.3s ease;
-        }
-        .task-card.completed .task-icon-container {
-            transform: scale(1.1);
-        }
-
-        .task-name { font-size: 1.3rem; font-weight: bold; transition: color 0.3s; }
+        .task-icon-container { font-size: 2rem; display: flex; align-items: center; justify-content: center; width: 45px; height: 45px; }
+        .task-name { font-size: 1.3rem; font-weight: bold; }
         .task-card.completed .task-name { text-decoration: line-through; color: rgba(255,255,255,0.35); }
 
-        /* ポップアップ */
-        .overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
-            display: flex; justify-content: center; align-items: center; z-index: 1000;
-            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
-        }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .overlay.active { opacity: 1; pointer-events: auto; }
-        .popup-content {
-            background: linear-gradient(135deg, #ffeef8 0%, #f0e6ff 100%);
-            padding: 25px; border-radius: 20px; text-align: center;
-            max-width: 85%; max-height: 85vh; display: flex; flex-direction: column; align-items: center;
-        }
+        .popup-content { background: linear-gradient(135deg, #ffeef8 0%, #f0e6ff 100%); padding: 25px; border-radius: 20px; text-align: center; max-width: 85%; max-height: 85vh; display: flex; flex-direction: column; align-items: center; }
         .popup-image { max-width: 100%; max-height: 50vh; object-fit: contain; border-radius: 10px; margin-bottom: 15px; }
         .popup-message { font-size: 1.6rem; font-weight: bold; color: #4a148c; margin-bottom: 15px; }
         .close-btn { background-color: #ff4081; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
@@ -325,11 +164,9 @@
     <div class="clock-container">
         <div class="analog-clock" id="analogClock">
             <svg class="clock-svg-overlay" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="44" stroke="transparent" stroke-width="8" fill="transparent" />
                 <circle id="blueArc" cx="50" cy="50" r="44" stroke="var(--timer-blue)" stroke-width="8" fill="transparent" 
                         stroke-dasharray="276.4" stroke-dashoffset="276.4" stroke-linecap="round" />
             </svg>
-            
             <div class="clock-face" id="clockFace">
                 <div class="hand hour-hand" id="hourHand"></div>
                 <div class="minute-hand hand" id="minuteHand"></div>
@@ -345,15 +182,14 @@
             <label>⏰ <b>しゅうしんじこく:</b></label>
             <input type="time" id="bedTimeInput" value="21:00" onchange="saveSettings()">
         </div>
-        
         <div id="alarmSettings" style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 10px; margin-top: 10px;">
             <div class="setting-group">
-                <b>🚨 アラームのおと設定:</b>
+                <b>🚨 電子アラーム設定 (ピピピッ):</b>
                 <label class="checkbox-label">
-                    <input type="checkbox" id="alarm5MinBefore" onchange="saveSettings()" checked> 5分前 (できた)
+                    <input type="checkbox" id="alarm5MinBefore" onchange="saveSettings()" checked> 5分前
                 </label>
                 <label class="checkbox-label">
-                    <input type="checkbox" id="alarmOnTime" onchange="saveSettings()" checked> オンタイム (おやすみ)
+                    <input type="checkbox" id="alarmOnTime" onchange="saveSettings()" checked> オンタイム
                 </label>
             </div>
         </div>
@@ -389,14 +225,16 @@
 
     <script>
         let tasks = [
-            { id: 1, name: 'ごはんを たべる', icon: '🍱', completed: false },
-            { id: 2, name: 'おふろに はいる', icon: '🛁', completed: false },
-            { id: 3, name: 'トイレに いく', icon: '🚽', completed: false },
-            { id: 4, name: 'はを みがく', icon: '🪥', completed: false },
-            { id: 5, name: 'パジャマを きる', icon: '👕', completed: false }
+            { id: 1, name: 'ごはんを たべる', icon: '🍱', completed: false, img: '' },
+            { id: 2, name: 'おふろに はいる', icon: '🛁', completed: false, img: '' },
+            { id: 3, name: 'トイレに いく', icon: '🚽', completed: false, img: '' },
+            { id: 4, name: 'はを みがく', icon: '🪥', completed: false, img: '' },
+            { id: 5, name: 'パジャマを きる', icon: '👕', completed: false, img: '' }
         ];
 
-        const images = ['ジャスミン.png', 'ベル.png', 'アリエル.png', 'オーロラ姫.png', 'シンデレラ.png', '白雪姫.png'];
+        // 割り当てられるプリンセス画像リスト
+        const princessImages = ['ジャスミン.png', 'ベル.png', 'アリエル.png', 'オーロラ姫.png', 'シンデレラ.png', '白雪姫.png'];
+        
         let isEditMode = false;
         let bedTime = "21:00";
         let longPressTimer;
@@ -405,17 +243,16 @@
         let alarm5Fired = false;
         let alarmOnTimeFired = false;
 
+        // オーディオコンテキスト（電子アラーム用）
+        let audioCtx = null;
+
         if(localStorage.getItem('bedTime')) bedTime = localStorage.getItem('bedTime');
         if(localStorage.getItem('bedTasks')) tasks = JSON.parse(localStorage.getItem('bedTasks'));
 
         window.onload = function() {
             createClockNumbers();
-            if(localStorage.getItem('alarm5MinBefore')) {
-                document.getElementById('alarm5MinBefore').checked = localStorage.getItem('alarm5MinBefore') === 'true';
-            }
-            if(localStorage.getItem('alarmOnTime')) {
-                document.getElementById('alarmOnTime').checked = localStorage.getItem('alarmOnTime') === 'true';
-            }
+            if(localStorage.getItem('alarm5MinBefore')) document.getElementById('alarm5MinBefore').checked = localStorage.getItem('alarm5MinBefore') === 'true';
+            if(localStorage.getItem('alarmOnTime')) document.getElementById('alarmOnTime').checked = localStorage.getItem('alarmOnTime') === 'true';
             document.getElementById('bedTimeInput').value = bedTime;
             renderTasks();
             setInterval(updateClock, 1000);
@@ -432,13 +269,12 @@
                 const numDiv = document.createElement('div');
                 numDiv.className = 'clock-number';
                 numDiv.innerText = i;
-                numDiv.style.left = `${x}px`;
-                numDiv.style.top = `${y}px`;
+                numDiv.style.left = `${x}px`; numDiv.style.top = `${y}px`;
                 face.appendChild(numDiv);
             }
         }
 
-        // 変更：完了時にアイコンをプリンセスの「ティアラ👑」に変化させるロジック
+        // 改修：完了時に「できた！」ボタンが消え、プリンセス丸写真スタンプに切り替わる
         function renderTasks() {
             const container = document.getElementById('taskContainer');
             container.innerHTML = '';
@@ -446,19 +282,32 @@
             tasks.forEach(task => {
                 const card = document.createElement('div');
                 card.className = `task-card ${task.completed ? 'completed' : ''}`;
-                const buttonText = task.completed ? 'もどす' : 'できた';
-                
-                // 完了状態なら「👑」、未完了なら元の絵文字を表示
-                const currentIcon = task.completed ? '👑' : task.icon;
+
+                // 右側の表示要素の出し分け判定
+                let actionAreaHtml = '';
+                if (task.completed) {
+                    // 完了時：添付画像スタイルの画像を配置。タップで「もどす」が動作
+                    actionAreaHtml = `
+                        <div class="completed-stamp-container" onclick="toggleTask(${task.id})">
+                            <img src="${task.img || 'シンデレラ.png'}" class="princess-stamp" alt="ごほうび">
+                            <div class="stamp-label">できた！</div>
+                        </div>
+                    `;
+                } else {
+                    // 未完了時：通常の「できた！」ボタン
+                    actionAreaHtml = `
+                        <button class="done-btn" onclick="toggleTask(${task.id})">できた！</button>
+                    `;
+                }
 
                 card.innerHTML = `
                     <div class="task-info">
-                        <div class="task-icon-container">${currentIcon}</div>
+                        ${isEditMode ? `<button class="delete-btn" onclick="deleteTask(${task.id}); event.stopPropagation();">さくじょ</button>` : ''}
+                        <div class="task-icon-container">${task.icon}</div>
                         <span class="task-name">${task.name}</span>
                     </div>
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        ${isEditMode ? `<button class="delete-btn" onclick="deleteTask(${task.id})">さくじょ</button>` : ''}
-                        <button class="btn done-btn ${task.completed ? 'completed' : ''}" onclick="toggleTask(${task.id})">${buttonText}</button>
+                        ${actionAreaHtml}
                     </div>
                 `;
                 container.appendChild(card);
@@ -466,34 +315,79 @@
         }
 
         function toggleTask(id) {
+            // iOSなどのブラウザ対策としてユーザー操作の瞬間にオーディオを初期化
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
             const task = tasks.find(t => t.id === id);
             if (!task) return;
 
             task.completed = !task.completed;
-            saveSettings();
-            renderTasks();
 
             if (task.completed) {
+                // 完了した瞬間に、まだ画像が割り当てられていなければランダムで選択
+                const randomImg = princessImages[Math.floor(Math.random() * princessImages.length)];
+                task.img = randomImg;
+
+                saveSettings();
+                renderTasks();
+
                 const allDone = tasks.every(t => t.completed);
                 if (allDone) {
-                    playAudio('audioGoodNight');
-                    showPopup(true);
+                    playWav('audioGoodNight');
+                    showPopup(task.img, true);
                 } else {
-                    playAudio('audioDone');
-                    showPopup(false);
+                    playWav('audioDone');
+                    showPopup(task.img, false);
                 }
+            } else {
+                // 未完了に戻す時は割り当て画像をクリア
+                task.img = '';
+                saveSettings();
+                renderTasks();
             }
         }
 
-        function playAudio(elementId) {
+        function playWav(elementId) {
             const audio = document.getElementById(elementId);
             if (audio) {
                 audio.currentTime = 0;
-                audio.play().catch(e => console.log("Audio block active"));
+                audio.play().catch(e => console.log("Wav play blocked"));
             }
         }
 
-        // 改修：添付画像と同じ「フチ沿い青塗り」の計算処理
+        // 変更：電子的なアラーム音（ピピピッ）を合成生成する関数
+        function playElectronicAlarm() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            const now = audioCtx.currentTime;
+            // 3回「ピピッ」となるタイマー音を構築
+            for (let i = 0; i < 3; i++) {
+                const startTime = now + i * 0.4;
+                
+                // 1回目の「ピ」
+                createBeep(startTime, 0.1);
+                // 2回目の「ピ」
+                createBeep(startTime + 0.15, 0.1);
+            }
+        }
+
+        function createBeep(startTime, duration) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'square'; // はっきり聴こえる短形波
+            osc.frequency.setValueAtTime(2000, startTime); // 高めのピピピッ音(2kHz)
+            
+            gain.gain.setValueAtTime(0.2, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+        }
+
         function updateClock() {
             const now = new Date();
             const hours = now.getHours();
@@ -521,58 +415,43 @@
             const timerDisplay = document.getElementById('timerDisplay');
             const blueArc = document.getElementById('blueArc');
 
-            // アラーム処理
+            // アラーム検知（変更：電子アラーム音を再生）
             const useAlarm5 = document.getElementById('alarm5MinBefore').checked;
             const useAlarmOnTime = document.getElementById('alarmOnTime').checked;
+            
             if (useAlarm5 && totalSec <= 300 && totalSec > 297 && !alarm5Fired) {
-                playAudio('audioDone'); alarm5Fired = true;
+                playElectronicAlarm(); 
+                alarm5Fired = true;
             }
             if (useAlarmOnTime && totalSec <= 0 && totalSec > -3 && !alarmOnTimeFired) {
-                playAudio('audioGoodNight'); alarmOnTimeFired = true;
+                playElectronicAlarm(); 
+                alarmOnTimeFired = true;
             }
             if (totalSec > 305) { alarm5Fired = false; alarmOnTimeFired = false; }
 
-            // フチ塗りゲージの制御（最大30分間＝時計盤のちょうど「半分」の長さ 138.2 px）
-            // 全周の長さ = 2 * PI * r(44) = 276.4
+            // 30分前フチ塗りゲージの計算
             if (diffMs > 0 && diffMin <= 30) {
                 const min = Math.floor(totalSec / 60);
                 const sec = totalSec % 60;
                 timerDisplay.innerText = `ねる時間まで あと ${min}分 ${sec.toString().padStart(2, '0')}秒`;
 
-                // 残り時間（最大1800秒）に応じたメーターの長さを計算
-                // 30分前時点で最大（半周分の長さ＝138.2）、0秒に向けて減っていく
                 const maxArcLength = 138.2; 
                 const currentArcLength = (totalSec / 1800) * maxArcLength;
-                
-                // SVGのダッシュオフセットを変化させることでフチに沿って伸縮
                 blueArc.style.strokeDashoffset = 276.4 - currentArcLength;
                 
-                // 現在の分針の位置（角度）に合わせて、青いゲージの開始地点を動的に回転させる
                 const currentMinutesInClock = minutes + (seconds / 60);
                 const startAngle = currentMinutesInClock * 6;
-                document.getElementById('clockPie')?.setAttribute('transform', `rotate(${startAngle} 50 50)`);
-                
-                // 今回はシンプルに、添付画像のように12時方向（または現在地）からキレイにフチへ乗るよう調整
-                // 現在の分針の位置に青ゲージを同期させるためSVGごと回転させます
                 const svgOverlay = document.querySelector('.clock-svg-overlay');
                 svgOverlay.style.transform = `rotate(${startAngle - 90}deg)`;
-
             } else {
                 timerDisplay.innerText = '';
-                blueArc.style.strokeDashoffset = 276.4; // 30分前以外は非表示
+                blueArc.style.strokeDashoffset = 276.4;
             }
         }
 
-        function startLongPress(e) {
-            isLongPressed = false;
-            longPressTimer = setTimeout(() => {
-                isLongPressed = true;
-                triggerLongPressAction();
-            }, 1000);
-        }
-
+        // 長押し・タップ制御
+        function startLongPress(e) { isLongPressed = false; longPressTimer = setTimeout(() => { isLongPressed = true; triggerLongPressAction(); }, 1000); }
         function cancelLongPress(e) { clearTimeout(longPressTimer); }
-
         function triggerLongPressAction() {
             const panel = document.getElementById('editPanel');
             isEditMode = true;
@@ -587,15 +466,10 @@
             isEditMode = !isEditMode;
             const btn = document.getElementById('editToggleBtn');
             const panel = document.getElementById('editPanel');
-            
             if(isEditMode) {
-                btn.innerText = "おわる";
-                btn.classList.add('active');
-                panel.classList.add('active');
+                btn.innerText = "おわる"; btn.classList.add('active'); panel.classList.add('active');
             } else {
-                btn.innerText = "へんしゅう";
-                btn.classList.remove('active');
-                panel.classList.remove('active');
+                btn.innerText = "へんしゅう"; btn.classList.remove('active'); panel.classList.remove('active');
             }
             renderTasks();
         }
@@ -606,13 +480,7 @@
             if(!nameInput.value.trim()) return;
 
             const newId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
-            tasks.push({
-                id: newId,
-                name: nameInput.value,
-                icon: iconInput.value,
-                completed: false
-            });
-
+            tasks.push({ id: newId, name: nameInput.value, icon: iconInput.value, completed: false, img: '' });
             nameInput.value = '';
             saveSettings();
             renderTasks();
@@ -624,13 +492,13 @@
             renderTasks();
         }
 
-        function showPopup(isAllCompleted) {
+        // ポップアップ（完了したタスクの画像を引き継ぐ）
+        function showPopup(currentImg, isAllCompleted) {
             const overlay = document.getElementById('overlay');
             const popupImage = document.getElementById('popupImage');
             const popupMessage = document.getElementById('popupMessage');
 
-            const randomIndex = Math.floor(Math.random() * images.length);
-            popupImage.src = images[randomIndex];
+            popupImage.src = currentImg;
 
             if (isAllCompleted) {
                 popupMessage.innerHTML = '✨ ぜんぶ できたね！ ✨<br>おやすみなさい 🌙';
@@ -640,7 +508,6 @@
             overlay.classList.add('active');
         }
 
-        document.getElementById('overlay').onclick = closePopup;
         function closePopup() { document.getElementById('overlay').classList.remove('active'); }
 
         function saveSettings() {
@@ -652,9 +519,8 @@
         }
 
         function resetTasks() {
-            tasks.forEach(t => t.completed = false);
-            alarm5Fired = false;
-            alarmOnTimeFired = false;
+            tasks.forEach(t => { t.completed = false; t.img = ''; });
+            alarm5Fired = false; alarmOnTimeFired = false;
             saveSettings();
             renderTasks();
             closePopup();
