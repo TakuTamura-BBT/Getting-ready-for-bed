@@ -6,13 +6,14 @@
     <title>おやすみのじゅんびアプリ</title>
     <style>
         :root {
-            --bg-gradient: linear-gradient(135deg, #1a1c4b 0%, #0d1b2a 100%);
-            --card-bg: rgba(255, 255, 255, 0.08);
+            /* ディズニーの夜空をイメージした深いロイヤルブルーと紫のグラデーション */
+            --bg-gradient: linear-gradient(135deg, #101535 0%, #2a1b4e 50%, #461e57 100%);
+            --card-bg: rgba(255, 255, 255, 0.12);
             --text-color: #ffffff;
-            --accent-color: #f1c40f;
-            --success-color: #2ecc71;
-            --danger-color: #e74c3c;
-            --timer-blue: rgba(52, 152, 219, 0.6); /* 残り時間を表す青塗り */
+            --accent-color: #fbd249; /* ピクシーダストのようなゴールド */
+            --success-color: #a8e6cf;
+            --danger-color: #ff7675;
+            --timer-blue: #3867d6; /* 添付画像に近い鮮やかなブルー */
         }
 
         body {
@@ -26,8 +27,54 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
             user-select: none;
             -webkit-user-select: none;
+        }
+
+        /* ディズニーっぽいお城の背景シルエット（CSSアート） */
+        body::before {
+            content: "";
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 800px;
+            height: 220px;
+            background: 
+                /* 中央の大尖塔 */
+                linear-gradient(90deg, transparent 48%, #1c1437 48%, #1c1437 52%, transparent 52%),
+                conic-gradient(from 150deg at 50% 0%, #1c1437 60deg, transparent 60deg),
+                /* 左右の塔 */
+                linear-gradient(90deg, transparent 35%, #160f2e 35%, #160f2e 42%, transparent 42%),
+                linear-gradient(90deg, transparent 58%, #160f2e 58%, #160f2e 65%, transparent 65%),
+                /* 城の壁ベース */
+                linear-gradient(to top, #0f0a21 0%, #140d2b 80%, transparent 100%);
+            background-size: 100% 100%, 60px 80px, 100% 100%, 100% 100%, 100% 100%;
+            background-position: bottom center, center bottom 120px, bottom center, bottom center, bottom center;
+            background-repeat: no-repeat;
+            opacity: 0.4;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* 夜空のきらきら星 */
+        body::after {
+            content: "★ . * ★ . * . ★";
+            position: fixed;
+            top: 10%;
+            left: 10%;
+            width: 80%;
+            height: 30%;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 1.5rem;
+            word-spacing: 100px;
+            letter-spacing: 50px;
+            line-height: 80px;
+            z-index: -1;
+            pointer-events: none;
         }
 
         header {
@@ -37,13 +84,14 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            z-index: 10;
         }
 
         h1 {
             color: var(--accent-color);
             font-size: 1.8rem;
             margin: 0;
-            text-shadow: 0 0 10px rgba(241, 196, 15, 0.3);
+            text-shadow: 0 0 12px rgba(251, 210, 73, 0.4);
         }
 
         /* 時計 & タイマーエリア */
@@ -52,36 +100,38 @@
             flex-direction: column;
             align-items: center;
             margin-bottom: 25px;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(15, 20, 50, 0.6);
             padding: 20px;
             border-radius: 25px;
             width: 100%;
             max-width: 460px;
             box-sizing: border-box;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
-        /* 数字と青塗り付きのアナログ時計 */
+        /* 改修：添付画像スタイルの美しいアナログ時計 */
         .analog-clock {
             width: 180px;
             height: 180px;
-            border: 6px solid #2c3e50;
+            border: 4px solid #ffffff;
             border-radius: 50%;
             position: relative;
             background: #ffffff;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
         }
 
-        /* 残り時間を表示する青塗りレイヤー */
-        .time-pie {
+        /* SVGを用いた正確なフチ沿い青塗りゲージ */
+        .clock-svg-overlay {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
             top: 0;
             left: 0;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg); /* 12時位置をスタートにする */
             pointer-events: none;
-            transform: rotate(-90deg); /* 真上(12時)を0度にする */
-            background: transparent;
+            z-index: 2;
         }
 
         .clock-face {
@@ -90,9 +140,9 @@
             height: 100%;
             top: 0;
             left: 0;
+            z-index: 3;
         }
 
-        /* 時計の文字盤の数字 */
         .clock-number {
             position: absolute;
             width: 20px;
@@ -108,21 +158,20 @@
             bottom: 50%;
             left: 50%;
             transform-origin: bottom;
-            background: #1a1a2e;
+            background: #2c3e50;
             border-radius: 4px;
-            z-index: 10;
         }
 
         .hour-hand { width: 5px; height: 45px; margin-left: -2.5px; }
         .minute-hand { width: 3.5px; height: 65px; margin-left: -1.75px; background: #34495e; }
         .second-hand { width: 1.5px; height: 75px; margin-left: -0.75px; background: var(--danger-color); }
-        .center-dot { position: absolute; top: 50%; left: 50%; width: 10px; height: 10px; background: #2c3e50; border-radius: 50%; transform: translate(-50%, -50%); z-index: 11; }
+        .center-dot { position: absolute; top: 50%; left: 50%; width: 10px; height: 10px; background: #2c3e50; border-radius: 50%; transform: translate(-50%, -50%); }
 
         .timer-display {
             margin-top: 15px;
             font-size: 1.4rem;
             font-weight: bold;
-            color: #54a0ff;
+            color: #74b9ff;
             min-height: 1.5rem;
             text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
@@ -138,16 +187,29 @@
             transition: background 0.2s, transform 0.1s;
         }
         .btn:active { transform: scale(0.95); }
-        .edit-btn { background-color: #3498db; color: white; }
+        .edit-btn { background-color: #4a69bd; color: white; }
         .edit-btn.active { background-color: #e67e22; }
-        .done-btn { background-color: #7f8c8d; color: white; font-size: 1.1rem; padding: 10px 20px; border-radius: 25px; min-width: 80px; }
-        .done-btn.completed { background-color: var(--success-color); }
+        
+        /* できたボタンの形状を画像風にブラッシュアップ */
+        .done-btn { 
+            background: linear-gradient(135deg, #ff9f43 0%, #ff6b6b 100%); 
+            color: white; 
+            font-size: 1.1rem; 
+            padding: 10px 22px; 
+            border-radius: 25px; 
+            min-width: 90px;
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.4);
+        }
+        .done-btn.completed { 
+            background: linear-gradient(135deg, #2ed573 0%, #1e90ff 100%); 
+            box-shadow: none;
+        }
         .delete-btn { background-color: var(--danger-color); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; border: none; cursor: pointer; }
 
         /* 編集パネル */
         .edit-panel {
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px dashed #3498db;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px dashed #4a69bd;
             border-radius: 15px;
             padding: 15px;
             width: 100%;
@@ -155,6 +217,7 @@
             margin-bottom: 20px;
             display: none;
             box-sizing: border-box;
+            z-index: 10;
         }
         .edit-panel.active { display: block; }
         .setting-group { margin-bottom: 12px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; font-size: 0.95rem; }
@@ -163,7 +226,7 @@
 
         /* 通常画面用のタスク追加エリア */
         .add-task-panel {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.06);
             border-radius: 15px;
             padding: 15px;
             width: 100%;
@@ -171,12 +234,13 @@
             margin-top: 20px;
             box-sizing: border-box;
             border: 1px solid rgba(255,255,255,0.1);
+            z-index: 10;
         }
         .add-task-title { font-size: 1rem; font-weight: bold; color: var(--accent-color); margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
         .add-task-form { display: flex; gap: 10px; width: 100%; }
         .add-task-form select { padding: 10px; border-radius: 10px; border: none; font-size: 1.1rem; background: #fff; }
         .add-task-form input { flex: 1; padding: 10px; border-radius: 10px; border: none; font-size: 1rem; }
-        .add-btn { background-color: #2ecc71; color: white; padding: 10px 20px; border-radius: 10px; font-weight: bold; }
+        .add-btn { background: linear-gradient(135deg, #2ecc71, #00d2d3); color: white; padding: 10px 20px; border-radius: 10px; font-weight: bold; }
 
         /* タスク一覧 */
         .task-container {
@@ -185,31 +249,46 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+            z-index: 10;
         }
 
         .task-card {
             background: var(--card-bg);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            border-radius: 15px;
-            padding: 15px 20px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 20px;
+            padding: 18px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            border: 2px solid rgba(255,255,255,0.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            border: 2px solid rgba(255,255,255,0.08);
             transition: all 0.3s ease;
         }
 
         .task-card.completed {
-            border-color: var(--success-color);
-            background: rgba(46, 204, 113, 0.12);
+            border-color: rgba(251, 210, 73, 0.5);
+            background: rgba(251, 210, 73, 0.1);
         }
 
         .task-info { display: flex; align-items: center; gap: 15px; }
-        .task-icon { font-size: 2rem; }
-        .task-name { font-size: 1.3rem; font-weight: bold; }
-        .task-card.completed .task-name { text-decoration: line-through; color: rgba(255,255,255,0.4); }
+        
+        /* 完了時にプリンセスのティアラ👑アイコンに変身する箇所 */
+        .task-icon-container {
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            transition: transform 0.3s ease;
+        }
+        .task-card.completed .task-icon-container {
+            transform: scale(1.1);
+        }
+
+        .task-name { font-size: 1.3rem; font-weight: bold; transition: color 0.3s; }
+        .task-card.completed .task-name { text-decoration: line-through; color: rgba(255,255,255,0.35); }
 
         /* ポップアップ */
         .overlay {
@@ -228,13 +307,13 @@
         .popup-message { font-size: 1.6rem; font-weight: bold; color: #4a148c; margin-bottom: 15px; }
         .close-btn { background-color: #ff4081; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
 
-        .reset-btn { margin-top: 25px; background-color: rgba(255,255,255,0.15); color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; }
+        .reset-btn { margin-top: 25px; background-color: rgba(255,255,255,0.12); color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; z-index: 10; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>🌙 おやすみナビ</h1>
+        <h1>👑 おやすみのじゅんび</h1>
         <button class="btn edit-btn" id="editToggleBtn" 
                 onclick="handleEditClick()" 
                 onmousedown="startLongPress()" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()"
@@ -245,7 +324,12 @@
 
     <div class="clock-container">
         <div class="analog-clock" id="analogClock">
-            <div class="time-pie" id="timePie"></div>
+            <svg class="clock-svg-overlay" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="44" stroke="transparent" stroke-width="8" fill="transparent" />
+                <circle id="blueArc" cx="50" cy="50" r="44" stroke="var(--timer-blue)" stroke-width="8" fill="transparent" 
+                        stroke-dasharray="276.4" stroke-dashoffset="276.4" stroke-linecap="round" />
+            </svg>
+            
             <div class="clock-face" id="clockFace">
                 <div class="hand hour-hand" id="hourHand"></div>
                 <div class="minute-hand hand" id="minuteHand"></div>
@@ -273,7 +357,6 @@
                 </label>
             </div>
         </div>
-        <div style="font-size: 0.8rem; color: #aeaeae; text-align: right;">※ボタン長押しでアラーム設定ON/OFFが連動します</div>
     </div>
 
     <div class="task-container" id="taskContainer"></div>
@@ -305,7 +388,6 @@
     <audio id="audioGoodNight" src="おやすみなさい.wav" preload="auto"></audio>
 
     <script>
-        // 初期タスク
         let tasks = [
             { id: 1, name: 'ごはんを たべる', icon: '🍱', completed: false },
             { id: 2, name: 'おふろに はいる', icon: '🛁', completed: false },
@@ -320,11 +402,9 @@
         let longPressTimer;
         let isLongPressed = false;
 
-        // アラーム発火フラグ（1日に何度も鳴らないように制限）
         let alarm5Fired = false;
         let alarmOnTimeFired = false;
 
-        // ローカルストレージから復元
         if(localStorage.getItem('bedTime')) bedTime = localStorage.getItem('bedTime');
         if(localStorage.getItem('bedTasks')) tasks = JSON.parse(localStorage.getItem('bedTasks'));
 
@@ -342,10 +422,9 @@
             updateClock();
         };
 
-        // アナログ時計の文字盤に数字(1〜12)を動的に配置
         function createClockNumbers() {
             const face = document.getElementById('clockFace');
-            const radius = 72; // 数字を配置する半径
+            const radius = 70; 
             for (let i = 1; i <= 12; i++) {
                 const angle = (i * 30) * (Math.PI / 180);
                 const x = 90 + radius * Math.sin(angle) - 10;
@@ -359,7 +438,7 @@
             }
         }
 
-        // タスク一覧の描画
+        // 変更：完了時にアイコンをプリンセスの「ティアラ👑」に変化させるロジック
         function renderTasks() {
             const container = document.getElementById('taskContainer');
             container.innerHTML = '';
@@ -368,10 +447,13 @@
                 const card = document.createElement('div');
                 card.className = `task-card ${task.completed ? 'completed' : ''}`;
                 const buttonText = task.completed ? 'もどす' : 'できた';
+                
+                // 完了状態なら「👑」、未完了なら元の絵文字を表示
+                const currentIcon = task.completed ? '👑' : task.icon;
 
                 card.innerHTML = `
                     <div class="task-info">
-                        <span class="task-icon">${task.icon}</span>
+                        <div class="task-icon-container">${currentIcon}</div>
                         <span class="task-name">${task.name}</span>
                     </div>
                     <div style="display: flex; gap: 10px; align-items: center;">
@@ -383,7 +465,6 @@
             });
         }
 
-        // タスクの状態反転（できた ⇔ もどす）
         function toggleTask(id) {
             const task = tasks.find(t => t.id === id);
             if (!task) return;
@@ -404,23 +485,21 @@
             }
         }
 
-        // 音声再生
         function playAudio(elementId) {
             const audio = document.getElementById(elementId);
             if (audio) {
                 audio.currentTime = 0;
-                audio.play().catch(e => console.log("音声の再生がブラウザによりブロックされました。"));
+                audio.play().catch(e => console.log("Audio block active"));
             }
         }
 
-        // 時計とタイマー、および残り時間の青塗り描画
+        // 改修：添付画像と同じ「フチ沿い青塗り」の計算処理
         function updateClock() {
             const now = new Date();
             const hours = now.getHours();
             const minutes = now.getMinutes();
             const seconds = now.getSeconds();
 
-            // 針の角度計算
             const hourDeg = (hours % 12) * 30 + minutes * 0.5;
             const minuteDeg = minutes * 6;
             const secondDeg = seconds * 6;
@@ -429,7 +508,6 @@
             document.getElementById('minuteHand').style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
             document.getElementById('secondHand').style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
 
-            // 就寝時刻の取得・計算
             const [bedH, bedM] = bedTime.split(':').map(Number);
             let bedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), bedH, bedM, 0);
             if (bedDate < now && now - bedDate > 0) {
@@ -441,88 +519,71 @@
             const totalSec = Math.floor(diffMs / 1000);
 
             const timerDisplay = document.getElementById('timerDisplay');
-            const timePie = document.getElementById('timePie');
+            const blueArc = document.getElementById('blueArc');
 
-            // --- アラーム音の判定処理 ---
+            // アラーム処理
             const useAlarm5 = document.getElementById('alarm5MinBefore').checked;
             const useAlarmOnTime = document.getElementById('alarmOnTime').checked;
-
-            // 5分前アラーム (秒単位で300秒前〜298秒前の間に発火)
             if (useAlarm5 && totalSec <= 300 && totalSec > 297 && !alarm5Fired) {
-                playAudio('audioDone');
-                alarm5Fired = true;
+                playAudio('audioDone'); alarm5Fired = true;
             }
-            // オンタイムアラーム (就寝時刻ぴったり)
             if (useAlarmOnTime && totalSec <= 0 && totalSec > -3 && !alarmOnTimeFired) {
-                playAudio('audioGoodNight');
-                alarmOnTimeFired = true;
+                playAudio('audioGoodNight'); alarmOnTimeFired = true;
             }
-            // 日付が変わる、または時間が離れたらフラグをリセット
             if (totalSec > 305) { alarm5Fired = false; alarmOnTimeFired = false; }
 
-
-            // --- 残り時間の青塗り ＆ テキストタイマー処理 (30分前から開始) ---
+            // フチ塗りゲージの制御（最大30分間＝時計盤のちょうど「半分」の長さ 138.2 px）
+            // 全周の長さ = 2 * PI * r(44) = 276.4
             if (diffMs > 0 && diffMin <= 30) {
                 const min = Math.floor(totalSec / 60);
                 const sec = totalSec % 60;
                 timerDisplay.innerText = `ねる時間まで あと ${min}分 ${sec.toString().padStart(2, '0')}秒`;
 
-                // 時計の「分針」が進む方向に合わせて青い扇形を描画
-                // 30分間 ＝ 180度分。残り1秒ごとに角度を減少させる
+                // 残り時間（最大1800秒）に応じたメーターの長さを計算
+                // 30分前時点で最大（半周分の長さ＝138.2）、0秒に向けて減っていく
+                const maxArcLength = 138.2; 
+                const currentArcLength = (totalSec / 1800) * maxArcLength;
+                
+                // SVGのダッシュオフセットを変化させることでフチに沿って伸縮
+                blueArc.style.strokeDashoffset = 276.4 - currentArcLength;
+                
+                // 現在の分針の位置（角度）に合わせて、青いゲージの開始地点を動的に回転させる
                 const currentMinutesInClock = minutes + (seconds / 60);
-                const startAngle = currentMinutesInClock * 6; // 現在の分針の角度
-                const targetAngle = bedM * 6;                // ゴール（就寝分）の角度
+                const startAngle = currentMinutesInClock * 6;
+                document.getElementById('clockPie')?.setAttribute('transform', `rotate(${startAngle} 50 50)`);
                 
-                // 扇形を conic-gradient で表現
-                timePie.style.background = `conic-gradient(var(--timer-blue) ${startAngle}deg, transparent ${startAngle}deg ${targetAngle}deg, var(--timer-blue) ${targetAngle}deg)`;
-                
-                // ※簡易的に「現在地から就寝時刻の角度」までを青塗り
-                let degStart = startAngle;
-                let degEnd = hourDeg; // 分針基準
-                timePie.style.background = `conic-gradient(from ${startAngle}deg, var(--timer-blue) 0deg, var(--timer-blue) ${(totalSec / 1800) * 180}deg, transparent ${(totalSec / 1800) * 180}deg)`;
+                // 今回はシンプルに、添付画像のように12時方向（または現在地）からキレイにフチへ乗るよう調整
+                // 現在の分針の位置に青ゲージを同期させるためSVGごと回転させます
+                const svgOverlay = document.querySelector('.clock-svg-overlay');
+                svgOverlay.style.transform = `rotate(${startAngle - 90}deg)`;
 
             } else {
                 timerDisplay.innerText = '';
-                timePie.style.background = 'transparent'; // 30分前以外は青塗りを消す
+                blueArc.style.strokeDashoffset = 276.4; // 30分前以外は非表示
             }
         }
 
-        // 長押しの検知ロジック
         function startLongPress(e) {
             isLongPressed = false;
             longPressTimer = setTimeout(() => {
                 isLongPressed = true;
                 triggerLongPressAction();
-            }, 1000); // 1秒以上の長押しで起動
+            }, 1000);
         }
 
-        function cancelLongPress(e) {
-            clearTimeout(longPressTimer);
-        }
+        function cancelLongPress(e) { clearTimeout(longPressTimer); }
 
-        // 長押しされた時の処理（アラーム設定の表示切り替えなど）
         function triggerLongPressAction() {
             const panel = document.getElementById('editPanel');
             isEditMode = true;
             document.getElementById('editToggleBtn').innerText = "おわる";
             document.getElementById('editToggleBtn').classList.add('active');
             panel.classList.add('active');
-            
-            // 長押しされたサインとして一瞬アラームエリアを強調
-            const alarmArea = document.getElementById('alarmSettings');
-            alarmArea.style.background = "rgba(52, 152, 219, 0.2)";
-            setTimeout(() => alarmArea.style.background = "transparent", 800);
-            
             renderTasks();
         }
 
-        // 普通にタップされた時の処理
         function handleEditClick() {
-            if (isLongPressed) {
-                isLongPressed = false;
-                return; // 長押し処理がすでに行われた場合はスキップ
-            }
-            
+            if (isLongPressed) { isLongPressed = false; return; }
             isEditMode = !isEditMode;
             const btn = document.getElementById('editToggleBtn');
             const panel = document.getElementById('editPanel');
@@ -539,7 +600,6 @@
             renderTasks();
         }
 
-        // タスク追加（通常画面の入力から）
         function addNewTask() {
             const nameInput = document.getElementById('newTaskName');
             const iconInput = document.getElementById('newTaskIcon');
@@ -558,14 +618,12 @@
             renderTasks();
         }
 
-        // タスク削除（編集画面の時のみボタンが出現）
         function deleteTask(id) {
             tasks = tasks.filter(t => t.id !== id);
             saveSettings();
             renderTasks();
         }
 
-        // ポップアップ表示
         function showPopup(isAllCompleted) {
             const overlay = document.getElementById('overlay');
             const popupImage = document.getElementById('popupImage');
@@ -582,11 +640,9 @@
             overlay.classList.add('active');
         }
 
-        function closePopup() {
-            document.getElementById('overlay').classList.remove('active');
-        }
+        document.getElementById('overlay').onclick = closePopup;
+        function closePopup() { document.getElementById('overlay').classList.remove('active'); }
 
-        // 設定保存
         function saveSettings() {
             bedTime = document.getElementById('bedTimeInput').value;
             localStorage.setItem('bedTime', bedTime);
@@ -595,7 +651,6 @@
             localStorage.setItem('alarmOnTime', document.getElementById('alarmOnTime').checked);
         }
 
-        // 完全リセット
         function resetTasks() {
             tasks.forEach(t => t.completed = false);
             alarm5Fired = false;
