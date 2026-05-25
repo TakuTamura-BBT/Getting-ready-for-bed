@@ -6,11 +6,11 @@
     <title>おやすみのじゅんびアプリ</title>
     <style>
         :root {
-            --bg-gradient: linear-gradient(135deg, #101535 0%, #2a1b4e 50%, #461e57 100%);
+            /* ディズニーアニメ風の美しい魔法の夜空をイメージしたグラデーション */
+            --bg-gradient: linear-gradient(to bottom, #0b0d26 0%, #161a44 40%, #2c1e5a 75%, #4d2366 100%);
             --card-bg: rgba(255, 255, 255, 0.12);
             --text-color: #ffffff;
-            --accent-color: #fbd249;
-            --success-color: #a8e6cf;
+            --accent-color: #ffd343; /* ピクシーダストのようなゴールド */
             --danger-color: #ff7675;
             --timer-blue: #3867d6;
         }
@@ -32,19 +32,68 @@
             -webkit-user-select: none;
         }
 
-        /* 背景のお城シルエット */
-        body::before {
-            content: ""; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: 800px; height: 220px;
+        /* 🌙 ディズニーアニメ風の背景イラスト（月・お城・星） */
+        .disney-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* 大きな満月 */
+        .bg-moon {
+            position: absolute;
+            top: 40px;
+            right: 10%;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, #fffdf0 0%, #fffa9e 70%, transparent 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(255, 250, 158, 0.6);
+            opacity: 0.7;
+        }
+
+        /* 夜空のきらきら星 */
+        .bg-stars {
+            position: absolute;
+            width: 100%;
+            height: 60%;
+            background-image: 
+                radial-gradient(circle, #fff 10%, transparent 20%),
+                radial-gradient(circle, #fff 15%, transparent 25%),
+                radial-gradient(circle, #ffd343 10%, transparent 20%);
+            background-size: 120px 120px, 200px 200px, 160px 160px;
+            background-position: 20px 30px, 80px 120px, 140px 60px;
+            opacity: 0.35;
+        }
+
+        /* シルエットのファンタジーお城 */
+        .bg-castle {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 700px;
+            height: 240px;
             background: 
-                linear-gradient(90deg, transparent 48%, #1c1437 48%, #1c1437 52%, transparent 52%),
-                conic-gradient(from 150deg at 50% 0%, #1c1437 60deg, transparent 60deg),
-                linear-gradient(90deg, transparent 35%, #160f2e 35%, #160f2e 42%, transparent 42%),
-                linear-gradient(90deg, transparent 58%, #160f2e 58%, #160f2e 65%, transparent 65%),
-                linear-gradient(to top, #0f0a21 0%, #140d2b 80%, transparent 100%);
-            background-size: 100% 100%, 60px 80px, 100% 100%, 100% 100%, 100% 100%;
-            background-position: bottom center, center bottom 120px, bottom center, bottom center, bottom center;
-            background-repeat: no-repeat; opacity: 0.4; z-index: -1; pointer-events: none;
+                /* 大尖塔の針 */
+                linear-gradient(90deg, transparent 49%, #120e29 49%, #120e29 51%, transparent 51%),
+                /* 中央のメイン三角屋根 */
+                conic-gradient(from 150deg at 50% 0%, #120e29 60deg, transparent 60deg),
+                /* 左の塔の屋根 */
+                conic-gradient(from 145deg at 25% 30%, #1a1438 70deg, transparent 70deg),
+                /* 右の塔の屋根 */
+                conic-gradient(from 145deg at 75% 30%, #1a1438 70deg, transparent 70deg),
+                /* お城の城壁の土台 */
+                linear-gradient(to top, #090617 0%, #140f2d 70%, transparent 100%);
+            background-size: 100% 100%, 70px 100px, 100% 100%, 100% 100%, 100% 100%;
+            background-position: bottom center, center bottom 100px, bottom center, bottom center, bottom center;
+            background-repeat: no-repeat;
+            opacity: 0.5;
         }
 
         header {
@@ -54,7 +103,7 @@
         h1 { color: var(--accent-color); font-size: 1.8rem; margin: 0; text-shadow: 0 0 12px rgba(251, 210, 73, 0.4); }
 
         .clock-container {
-            display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; background: rgba(15, 20, 50, 0.6);
+            display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; background: rgba(15, 20, 50, 0.55);
             padding: 20px; border-radius: 25px; width: 100%; max-width: 460px; box-sizing: border-box;
             border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
         }
@@ -76,7 +125,6 @@
         .edit-btn { background-color: #4a69bd; color: white; }
         .edit-btn.active { background-color: #e67e22; }
         
-        /* 通常時の「できた！」ボタン */
         .done-btn { 
             background: linear-gradient(135deg, #ff9f43 0%, #ff6b6b 100%); 
             color: white; font-size: 1.1rem; padding: 10px 22px; border-radius: 25px; min-width: 90px;
@@ -84,7 +132,7 @@
         }
         .delete-btn { background-color: var(--danger-color); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; border: none; cursor: pointer; }
 
-        /* 改修：タスク完了後の画像スタンプエリア（添付画像を再現） */
+        /* タスク完了後の画像スタンプエリア */
         .completed-stamp-container {
             position: relative;
             width: 75px;
@@ -92,18 +140,19 @@
             cursor: pointer;
         }
 
-        /* プリンセスの丸型写真 */
+        /* ★改修：プリンセスの丸型写真（顔が絶対に切れないように位置調整） */
         .princess-stamp {
             width: 70px;
             height: 70px;
             border-radius: 50%;
-            border: 3px solid #ff4d4d; /* 添付画像のような赤・オレンジ系の太フチ */
+            border: 3px solid #ff5e3a;
             object-fit: cover;
+            /* 重要：画像の切り取り位置を「中央」から「上部（頭・顔側）」に固定します */
+            object-position: top center; 
             background-color: #fff;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
 
-        /* 写真の右下に重なる「できた！」小文字フラグ */
         .stamp-label {
             position: absolute;
             bottom: 0px;
@@ -150,6 +199,12 @@
     </style>
 </head>
 <body>
+
+    <div class="disney-background">
+        <div class="bg-stars"></div>
+        <div class="bg-moon"></div>
+        <div class="bg-castle"></div>
+    </div>
 
     <header>
         <h1>👑 おやすみのじゅんび</h1>
@@ -232,7 +287,6 @@
             { id: 5, name: 'パジャマを きる', icon: '👕', completed: false, img: '' }
         ];
 
-        // 割り当てられるプリンセス画像リスト
         const princessImages = ['ジャスミン.png', 'ベル.png', 'アリエル.png', 'オーロラ姫.png', 'シンデレラ.png', '白雪姫.png'];
         
         let isEditMode = false;
@@ -242,8 +296,6 @@
 
         let alarm5Fired = false;
         let alarmOnTimeFired = false;
-
-        // オーディオコンテキスト（電子アラーム用）
         let audioCtx = null;
 
         if(localStorage.getItem('bedTime')) bedTime = localStorage.getItem('bedTime');
@@ -274,7 +326,6 @@
             }
         }
 
-        // 改修：完了時に「できた！」ボタンが消え、プリンセス丸写真スタンプに切り替わる
         function renderTasks() {
             const container = document.getElementById('taskContainer');
             container.innerHTML = '';
@@ -283,10 +334,8 @@
                 const card = document.createElement('div');
                 card.className = `task-card ${task.completed ? 'completed' : ''}`;
 
-                // 右側の表示要素の出し分け判定
                 let actionAreaHtml = '';
                 if (task.completed) {
-                    // 完了時：添付画像スタイルの画像を配置。タップで「もどす」が動作
                     actionAreaHtml = `
                         <div class="completed-stamp-container" onclick="toggleTask(${task.id})">
                             <img src="${task.img || 'シンデレラ.png'}" class="princess-stamp" alt="ごほうび">
@@ -294,7 +343,6 @@
                         </div>
                     `;
                 } else {
-                    // 未完了時：通常の「できた！」ボタン
                     actionAreaHtml = `
                         <button class="done-btn" onclick="toggleTask(${task.id})">できた！</button>
                     `;
@@ -315,7 +363,6 @@
         }
 
         function toggleTask(id) {
-            // iOSなどのブラウザ対策としてユーザー操作の瞬間にオーディオを初期化
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
             const task = tasks.find(t => t.id === id);
@@ -324,7 +371,6 @@
             task.completed = !task.completed;
 
             if (task.completed) {
-                // 完了した瞬間に、まだ画像が割り当てられていなければランダムで選択
                 const randomImg = princessImages[Math.floor(Math.random() * princessImages.length)];
                 task.img = randomImg;
 
@@ -340,7 +386,6 @@
                     showPopup(task.img, false);
                 }
             } else {
-                // 未完了に戻す時は割り当て画像をクリア
                 task.img = '';
                 saveSettings();
                 renderTasks();
@@ -355,18 +400,12 @@
             }
         }
 
-        // 変更：電子的なアラーム音（ピピピッ）を合成生成する関数
         function playElectronicAlarm() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            
             const now = audioCtx.currentTime;
-            // 3回「ピピッ」となるタイマー音を構築
             for (let i = 0; i < 3; i++) {
                 const startTime = now + i * 0.4;
-                
-                // 1回目の「ピ」
                 createBeep(startTime, 0.1);
-                // 2回目の「ピ」
                 createBeep(startTime + 0.15, 0.1);
             }
         }
@@ -374,16 +413,12 @@
         function createBeep(startTime, duration) {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            
-            osc.type = 'square'; // はっきり聴こえる短形波
-            osc.frequency.setValueAtTime(2000, startTime); // 高めのピピピッ音(2kHz)
-            
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(2000, startTime);
             gain.gain.setValueAtTime(0.2, startTime);
             gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-            
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-            
             osc.start(startTime);
             osc.stop(startTime + duration);
         }
@@ -415,21 +450,17 @@
             const timerDisplay = document.getElementById('timerDisplay');
             const blueArc = document.getElementById('blueArc');
 
-            // アラーム検知（変更：電子アラーム音を再生）
             const useAlarm5 = document.getElementById('alarm5MinBefore').checked;
             const useAlarmOnTime = document.getElementById('alarmOnTime').checked;
             
             if (useAlarm5 && totalSec <= 300 && totalSec > 297 && !alarm5Fired) {
-                playElectronicAlarm(); 
-                alarm5Fired = true;
+                playElectronicAlarm(); alarm5Fired = true;
             }
             if (useAlarmOnTime && totalSec <= 0 && totalSec > -3 && !alarmOnTimeFired) {
-                playElectronicAlarm(); 
-                alarmOnTimeFired = true;
+                playElectronicAlarm(); alarmOnTimeFired = true;
             }
             if (totalSec > 305) { alarm5Fired = false; alarmOnTimeFired = false; }
 
-            // 30分前フチ塗りゲージの計算
             if (diffMs > 0 && diffMin <= 30) {
                 const min = Math.floor(totalSec / 60);
                 const sec = totalSec % 60;
@@ -449,7 +480,6 @@
             }
         }
 
-        // 長押し・タップ制御
         function startLongPress(e) { isLongPressed = false; longPressTimer = setTimeout(() => { isLongPressed = true; triggerLongPressAction(); }, 1000); }
         function cancelLongPress(e) { clearTimeout(longPressTimer); }
         function triggerLongPressAction() {
@@ -492,7 +522,6 @@
             renderTasks();
         }
 
-        // ポップアップ（完了したタスクの画像を引き継ぐ）
         function showPopup(currentImg, isAllCompleted) {
             const overlay = document.getElementById('overlay');
             const popupImage = document.getElementById('popupImage');
@@ -508,6 +537,7 @@
             overlay.classList.add('active');
         }
 
+        document.getElementById('overlay').onclick = closePopup;
         function closePopup() { document.getElementById('overlay').classList.remove('active'); }
 
         function saveSettings() {
